@@ -62,6 +62,7 @@ const char *Triple::getArchTypeName(ArchType Kind) {
   case shave:       return "shave";
   case wasm32:      return "wasm32";
   case wasm64:      return "wasm64";
+  case tricore:     return "tricore";
   }
 
   llvm_unreachable("Invalid ArchType!");
@@ -126,6 +127,7 @@ const char *Triple::getArchTypePrefix(ArchType Kind) {
   case shave:       return "shave";
   case wasm32:      return "wasm32";
   case wasm64:      return "wasm64";
+  case tricore:     return "tricore";
   }
 }
 
@@ -261,6 +263,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("shave", shave)
     .Case("wasm32", wasm32)
     .Case("wasm64", wasm64)
+    .Case("tricore", tricore)
     .Default(UnknownArch);
 }
 
@@ -368,6 +371,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("shave", Triple::shave)
     .Case("wasm32", Triple::wasm32)
     .Case("wasm64", Triple::wasm64)
+    .Case("tricore", Triple::tricore)
     .Default(Triple::UnknownArch);
 }
 
@@ -528,6 +532,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::systemz:
   case Triple::xcore:
   case Triple::ppc64le:
+  case Triple::tricore:
     return Triple::ELF;
 
   case Triple::ppc:
@@ -1018,6 +1023,7 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::kalimba:
   case llvm::Triple::shave:
   case llvm::Triple::wasm32:
+  case llvm::Triple::tricore:
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1092,6 +1098,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::xcore:
   case Triple::shave:
   case Triple::wasm32:
+  case Triple::tricore:
     // Already 32-bit.
     break;
 
@@ -1126,6 +1133,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::xcore:
   case Triple::sparcel:
   case Triple::shave:
+  case Triple::tricore:
     T.setArch(UnknownArch);
     break;
 
@@ -1190,6 +1198,7 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::x86:
   case Triple::x86_64:
   case Triple::xcore:
+  case Triple::tricore:
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
@@ -1230,7 +1239,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::ppc:
   case Triple::sparcv9:
   case Triple::systemz:
-  case Triple::tce:
+  case Triple::tce:  
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
@@ -1268,6 +1277,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::x86:
   case Triple::x86_64:
   case Triple::xcore:
+  case Triple::tricore:
     // Already little endian.
     break;
 

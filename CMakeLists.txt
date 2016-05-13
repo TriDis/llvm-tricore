@@ -187,6 +187,7 @@ set(LLVM_ALL_TARGETS
   PowerPC
   Sparc
   SystemZ
+  TriCore
   X86
   XCore
   )
