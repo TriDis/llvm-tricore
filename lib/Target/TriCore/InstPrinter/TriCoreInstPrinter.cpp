@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define DEBUG_TYPE "asm-printer"
 #include "TriCoreInstPrinter.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/CodeGen/ISDOpcodes.h"
@@ -23,6 +22,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include "../TriCore.h"
 using namespace llvm;
+
+#define DEBUG_TYPE "asm-printer"
 
 #include "TriCoreGenAsmWriter.inc"
 
@@ -37,7 +38,8 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   printAnnotation(O, Annot);
 }
 
-static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
+static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
+                      raw_ostream &OS) {
   int Offset = 0;
   const MCSymbolRefExpr *SRE;
 
@@ -50,21 +52,21 @@ static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
     SRE = dyn_cast<MCSymbolRefExpr>(Expr);
     assert(SRE && "Unexpected MCExpr type.");
   }
-  const MCSymbolRefExpr::VariantKind Kind = SRE->getKind();
-//  assert(Kind == MCSymbolRefExpr::VK_None ||
-//         Kind == MCSymbolRefExpr::VK_TRICORE_LO ||
-//         Kind == MCSymbolRefExpr::VK_TRICORE_HI);
-//
 
-  if (Kind ==  MCSymbolRefExpr::VK_TRICORE_HI_OFFSET)
-  	OS << "hi:";
-  else if (Kind ==  MCSymbolRefExpr::VK_TRICORE_LO_OFFSET)
-  	OS << "lo:";
-  OS << SRE->getSymbol();
+  MCSymbolRefExpr::VariantKind Kind = SRE->getKind();
+
+  SRE->getSymbol().print(OS, MAI);
+
+  switch (Kind) {
+    default:                                 llvm_unreachable("Invalid kind!");
+    case MCSymbolRefExpr::VK_None:           break;
+    case MCSymbolRefExpr::VK_TRICORE_HI_OFFSET:    OS << "hi:";     break;
+    case MCSymbolRefExpr::VK_TRICORE_LO_OFFSET:    OS << "lo:";     break;
+  }
+
   if (Offset) {
-    if (Offset > 0) {
+    if (Offset > 0)
       OS << '+';
-    }
     OS << Offset;
   }
 }
@@ -88,7 +90,7 @@ template <unsigned bits>
 void TriCoreInstPrinter::printSExtImm(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
   int64_t Value = MI->getOperand(OpNo).getImm();
- Value = SignExtend32<bits>(Value);
+  Value = SignExtend32<bits>(Value);
   //outs()<< "Value: "<< Value <<"\n";
   assert(isInt<bits>(Value) && "Invalid simm argument");
 
@@ -111,26 +113,26 @@ void TriCoreInstPrinter::printZExtImm(const MCInst *MI, int OpNo,
 void TriCoreInstPrinter::printAddrModeMemSrc(const MCInst *MI, unsigned OpNum,
                                          raw_ostream &O) {
 
-	const MCOperand &Base = MI->getOperand(OpNum);
-	const MCOperand &Disp = MI->getOperand(OpNum+1);
+  const MCOperand &Base = MI->getOperand(OpNum);
+  const MCOperand &Disp = MI->getOperand(OpNum+1);
 
-	// Print register base field
-	if (Base.getReg())
-			O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << ']';
+  // Print register base field
+  if (Base.getReg())
+      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << ']';
 
-	if (Disp.isExpr())
-		Disp.getExpr()->print(O, &MAI);
-	else {
-		assert(Disp.isImm() && "Expected immediate in displacement field");
-		O << " " << Disp.getImm();
-	}
+  if (Disp.isExpr())
+    Disp.getExpr()->print(O, &MAI);
+  else {
+    assert(Disp.isImm() && "Expected immediate in displacement field");
+    O << " " << Disp.getImm();
+  }
 
 }
 
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
 
-	const MCOperand &Op = MI->getOperand(OpNo);
+  const MCOperand &Op = MI->getOperand(OpNo);
 
   if (Op.isReg()) {
     printRegName(O, Op.getReg());
@@ -143,7 +145,7 @@ void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
   }
 
   assert(Op.isExpr() && "unknown operand kind in printOperand");
-  printExpr(Op.getExpr(), O);
+  printExpr(Op.getExpr(), &MAI, O);
 }
 
 void TriCoreInstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,

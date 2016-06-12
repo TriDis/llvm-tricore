@@ -547,7 +547,7 @@ DecodeSROInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
   if (status != MCDisassembler::Success)
     return status;
 
-  // Decode const4.
+  // Decode off4.
   Inst.addOperand(MCOperand::createImm(off4));
 
   return MCDisassembler::Success;
