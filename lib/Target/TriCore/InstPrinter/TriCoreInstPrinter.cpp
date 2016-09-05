@@ -28,8 +28,7 @@ using namespace llvm;
 #include "TriCoreGenAsmWriter.inc"
 
 void TriCoreInstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
-  OS << "%" <<StringRef(getRegisterName(RegNo)).lower();
-
+  OS << "%" << StringRef(getRegisterName(RegNo)).lower();
 }
 
 void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
@@ -118,13 +117,13 @@ void TriCoreInstPrinter::printAddrModeMemSrc(const MCInst *MI, unsigned OpNum,
 
   // Print register base field
   if (Base.getReg())
-      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << ']';
+      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "]";
 
   if (Disp.isExpr())
     Disp.getExpr()->print(O, &MAI);
   else {
     assert(Disp.isImm() && "Expected immediate in displacement field");
-    O << " " << Disp.getImm();
+    O << Disp.getImm();
   }
 
 }
