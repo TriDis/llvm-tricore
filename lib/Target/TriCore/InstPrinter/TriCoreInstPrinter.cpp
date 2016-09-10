@@ -88,23 +88,26 @@ void TriCoreInstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
 template <unsigned bits>
 void TriCoreInstPrinter::printSExtImm(const MCInst *MI, unsigned OpNo,
                                        raw_ostream &O) {
-  int64_t Value = MI->getOperand(OpNo).getImm();
-  Value = SignExtend32<bits>(Value);
-  //outs()<< "Value: "<< Value <<"\n";
-  assert(isInt<bits>(Value) && "Invalid simm argument");
-
-  O << Value;
+  if (MI->getOperand(OpNo).isImm()) {
+    int64_t Value = MI->getOperand(OpNo).getImm();
+    Value = SignExtend32<bits>(Value);
+    assert(isInt<bits>(Value) && "Invalid simm argument");
+    O << Value;
+  }
+  else
+    printOperand(MI, OpNo, O);
 }
 
 template <unsigned bits>
 void TriCoreInstPrinter::printZExtImm(const MCInst *MI, int OpNo,
                                        raw_ostream &O) {
-  unsigned int Value = MI->getOperand(OpNo).getImm();
-//  unsigned int maxval = pow((uint)2,(uint)bits);
-  //outs()<< "Power value: " << maxval <<"\n";
-  assert(Value <= ((unsigned int)pow(2,bits) -1 )  && "Invalid uimm argument!");
-  //Value =  (unsigned char)(Value);
-  O << (unsigned int)Value;
+  if (MI->getOperand(OpNo).isImm()) {
+    unsigned int Value = MI->getOperand(OpNo).getImm();
+    assert(Value <= ((unsigned int)pow(2,bits) -1 )  && "Invalid uimm argument!");
+    O << (unsigned int)Value;
+  }
+  else
+    printOperand(MI, OpNo, O);
 }
 
 
@@ -125,7 +128,6 @@ void TriCoreInstPrinter::printAddrModeMemSrc(const MCInst *MI, unsigned OpNum,
     assert(Disp.isImm() && "Expected immediate in displacement field");
     O << Disp.getImm();
   }
-
 }
 
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,

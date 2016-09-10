@@ -481,7 +481,7 @@ def imm_from_0_to_neg512 : Operand<i32>, PatLeaf<(imm), [{
 class LOGICALN_RC <bits<7> op2, string asmstring, SDNode OpNode>
  : RC<0x8f, op2, (outs DataRegs:$d),
     (ins DataRegs:$s1, imm_from_0_to_neg512:$const9),
-  !strconcat(asmstring," $d, $s1, ~($const9)"),
+  !strconcat(asmstring," $d, $s1, $const9"),
   [(set i32:$d, (OpNode i32:$s1, imm_from_0_to_neg512:$const9 ))]>;
 
 def ANDNrc : LOGICALN_RC<0x0e, "andn", and>;
@@ -578,10 +578,10 @@ def LDBbo  : AlignedLoad<0x20, "ld.b"  , sextloadi8>;
 def LDBUbo : AlignedLoad<0x21, "ld.bu" , zextloadi8>;
 def LDHbo  : AlignedLoad<0x22, "ld.h"  , sextloadi16>;
 def LDHUbo : AlignedLoad<0x23, "ld.hu" , zextloadi16>;
-//def LDWbo  : AlignedLoad<0x24, "ld.w"  , load>;
+def LDWbo  : AlignedLoad<0x24, "ld.w"  , load>;
 def LDDbo  : AlignedLoad<0x25, "ld.d"  , load, ExtRegs, i64>;
 
-def LDWbo : BOL<0x19, (outs DataRegs:$d),
+def LDWbol : BOL<0x19, (outs DataRegs:$d),
    (ins memsrc:$memri),
    "ld.w $d, $memri",
    [(set DataRegs:$d, (load addr:$memri))]>{ let mayLoad = 1; }
