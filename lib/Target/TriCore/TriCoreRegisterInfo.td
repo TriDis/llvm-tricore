@@ -131,7 +131,7 @@ def AddrRegs : RegisterClass<"TriCore", [i32], 32, (add
     // Global Address
     A0, A1, A8, A9)>;
 
-def ExtRegs : RegisterClass<"TriCore", [i64], 32, (add
+def ExtRegs : RegisterClass<"TriCore", [i64], 64, (add
     E2, E4,
     E6, E8, E10,
     E12, E14, E0)>;

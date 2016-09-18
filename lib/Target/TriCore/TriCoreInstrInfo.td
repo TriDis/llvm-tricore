@@ -42,7 +42,7 @@ def SDT_TriCoreLCmp     : SDTypeProfile<1, 4, [SDTCisSameAs<0, 1>,
 def SDT_TriCoreBrCC     : SDTypeProfile<0, 3, [SDTCisVT<0, OtherVT>,
                            SDTCisVT<1, i32>,
                            SDTCisVT<2, i32>]>;
-def SDT_TriCoreCall : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;                           
+def SDT_TriCoreCall : SDTypeProfile<0, -1, [SDTCisPtrTy<0>]>;
 def SDT_TriCoreSelectCC : SDTypeProfile<1, 4, [SDTCisSameAs<0, 1>,
                            SDTCisSameAs<1, 2>,
                            SDTCisVT<3, i32>,
@@ -340,7 +340,8 @@ def SUBi64 : Pseudo<(outs ExtRegs:$d),
 } //let Defs = [PSW]
 
 let Defs = [A10], Uses = [A10] in
-def SUBAsc : SC<0x20, (outs), (ins u8imm:$const8), "sub.a %a10, $const8", []>;
+def SUBAsc : SC<0x20, (outs), (ins u8imm:$const8), "sub.a %a10, $const8",
+  [(set A10, (sub A10, immZExt8:$const8) )]>;
 
 def SUBArr : RR<0x01, 0x02, (outs AddrRegs:$d),
   (ins AddrRegs:$s1, AddrRegs:$s2), "sub.a $d, $s1, $s2",
@@ -848,15 +849,15 @@ def OR_NErc : RC<0x8B, 0x28,
 } // let Constraints="$d = $fsrc"
 
 // Branch Instructions
+let Uses = [PC], Defs = [PC] in
 multiclass JUMP_16<bits<8> op1_sb, bits<8> op1_sbr,
          string asmstring, PatLeaf PF>
 {
-
-//  let Uses = [D15] in
-//  def sb: SB<op1_sb, (outs),
-//     (ins jmptarget:$disp4),
-//     !strconcat(asmstring, " %d15, $disp4"),
-//     [(TriCoreBrCC  bb:$disp4)]>;
+  let Uses = [D15] in
+  def sb: SB<op1_sb, (outs),
+     (ins jmptarget:$disp8),
+     !strconcat(asmstring, " %d15, $disp8"),
+     [(TriCoreBrCC  bb:$disp8, D15, PF)]>;
 
   def sbr: SBR<op1_sbr, (outs),
      (ins jmptarget:$disp4, DataRegs:$s1),

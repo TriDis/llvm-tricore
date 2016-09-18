@@ -54,14 +54,14 @@ static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
 
   MCSymbolRefExpr::VariantKind Kind = SRE->getKind();
 
-  SRE->getSymbol().print(OS, MAI);
-
   switch (Kind) {
     default:                                 llvm_unreachable("Invalid kind!");
     case MCSymbolRefExpr::VK_None:           break;
     case MCSymbolRefExpr::VK_TRICORE_HI_OFFSET:    OS << "hi:";     break;
     case MCSymbolRefExpr::VK_TRICORE_LO_OFFSET:    OS << "lo:";     break;
   }
+
+  SRE->getSymbol().print(OS, MAI);
 
   if (Offset) {
     if (Offset > 0)
