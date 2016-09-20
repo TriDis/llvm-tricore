@@ -563,7 +563,7 @@ class RLC<bits<8> op1, dag outs, dag ins, string asmstr,
   let Inst{27-12} = const16;
   let Inst{11-8} = s1;
   let Inst{7-0} = op1;
-  let DecoderMethod = "DecodeRCLInstruction";
+  let DecoderMethod = "DecodeRLCInstruction";
 }
 
 //===----------------------------------------------------------------------===//

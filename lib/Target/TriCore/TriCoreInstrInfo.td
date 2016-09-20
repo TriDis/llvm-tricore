@@ -50,8 +50,8 @@ def SDT_TriCoreSelectCC : SDTypeProfile<1, 4, [SDTCisSameAs<0, 1>,
 def SDT_TriCoreWrapper  : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>,
                            SDTCisPtrTy<0>]>;
 
-def SDT_TriCoreShift    : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
-                           SDTCisVT<0, i32>,
+def SDT_TriCoreShift    : SDTypeProfile<1, 2, [SDTCisVT<0, i32>,
+                           SDTCisVT<1, i32>,
                            SDTCisVT<2, i32>]>;
 
 def SDT_TriCoreMovei32         : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>,
