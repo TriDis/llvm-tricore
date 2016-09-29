@@ -15,13 +15,16 @@ void TriCoreMCAsmInfo::anchor() {}
 
 TriCoreMCAsmInfo::TriCoreMCAsmInfo(const Triple &TT) {
   SupportsDebugInformation = true;
+  Data8bitsDirective  = "\t.byte\t";
   Data16bitsDirective = "\t.short\t";
   Data32bitsDirective = "\t.word\t";
-  Data64bitsDirective = "\t.64bit\t";
-  ZeroDirective = "\t.space\t";
+  Data64bitsDirective = nullptr;
+  ZeroDirective = "\t.zero\t";
   CommentString = "#";
+  UsesELFSectionDirectiveForBSS = true;
+  AlignmentIsInBytes = false;
 
-  AscizDirective = ".asciiz";
+  AscizDirective = "\t.string ";
 
   HiddenVisibilityAttr = MCSA_Invalid;
   HiddenDeclarationVisibilityAttr = MCSA_Invalid;

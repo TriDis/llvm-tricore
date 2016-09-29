@@ -53,9 +53,10 @@ public:
       // This table *must* be in the order that the fixup_* kinds are defined in
       // TriCoreFixupKinds.h.
       //
-      // Name                      Offset (bits) Size (bits)     Flags
+      // { Name, Offset (bits), Size (bits), Flags }
       { "fixup_leg_mov_hi16_pcrel", 0, 32, MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_leg_mov_lo16_pcrel", 0, 32, MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_call", 0, 24, 0 },
     };
 
     if (Kind < FirstTargetFixupKind) {
@@ -104,9 +105,11 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   switch (Kind) {
   default:
     llvm_unreachable("Unknown fixup kind!");
+  case TriCore::fixup_call:
+    return Value & 0xffffff;
   case TriCore::fixup_leg_mov_hi16_pcrel:
     Value >>= 16;
-  // Intentional fall-through
+    // Intentional fall-through
   case TriCore::fixup_leg_mov_lo16_pcrel:
     unsigned Hi4  = (Value & 0xF000) >> 12;
     unsigned Lo12 = Value & 0x0FFF;

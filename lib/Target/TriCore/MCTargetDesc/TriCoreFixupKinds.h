@@ -17,6 +17,7 @@ namespace TriCore {
 enum Fixups {
   fixup_leg_mov_hi16_pcrel = FirstTargetFixupKind,
   fixup_leg_mov_lo16_pcrel,
+  fixup_call,
 
   // Marker
   LastTargetFixupKind,
