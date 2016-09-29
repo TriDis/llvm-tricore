@@ -343,6 +343,7 @@ DecodeSBCInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
                     const void *Decoder) {
 
   unsigned const4 = fieldFromInstruction(Insn, 12, 4);
+  unsigned disp4 = fieldFromInstruction(Insn, 8, 4);
   unsigned is32Bit = fieldFromInstruction(Insn, 0, 1);
 
   if(is32Bit) // This instruction is 16-bit
@@ -359,6 +360,7 @@ DecodeSBRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
                     const void *Decoder) {
 
   unsigned s2 = fieldFromInstruction(Insn, 12, 4);
+  unsigned disp4 = fieldFromInstruction(Insn, 8, 4);
   unsigned is32Bit = fieldFromInstruction(Insn, 0, 1);
 
   if(is32Bit) // This instruction is 16-bit
@@ -368,6 +370,9 @@ DecodeSBRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
   DecodeStatus status = DecodeDataRegsRegisterClass(Inst, s2, Address, Decoder);
   if (status != MCDisassembler::Success)
     return status;
+
+  // Decode disp4.
+  Inst.addOperand(MCOperand::createImm(disp4));
 
   return MCDisassembler::Success;
 }
