@@ -100,8 +100,10 @@ def TriCore_COND_GE : PatLeaf<(i32 2)>;
 def TriCore_COND_LT : PatLeaf<(i32 3)>;
 // TriCore Logic Codes
 def TriCore_LOGIC_AND_EQ : PatLeaf<(i32 0)>;
+def TriCore_LOGIC_AND_NE : PatLeaf<(i32 1)>;
 def TriCore_LOGIC_AND_GE : PatLeaf<(i32 2)>;
 def TriCore_LOGIC_AND_LT : PatLeaf<(i32 3)>;
+def TriCore_LOGIC_OR_EQ :  PatLeaf<(i32 0)>;
 def TriCore_LOGIC_OR_NE :  PatLeaf<(i32 1)>;
 def TriCore_LOGIC_OR_GE :  PatLeaf<(i32 12)>;
 def TriCore_LOGIC_OR_LT :  PatLeaf<(i32 13)>;
@@ -471,7 +473,7 @@ defm XOR : Logical32_0<0x0c, "xor", xor>;
 
 let Constraints = "$s1 = $d", isCommutable = 1 in
   def XORsrr : SRR<0xc6, (outs DataRegs:$d),
-  (ins DataRegs:$s1, DataRegs:$s2), "xor $d, $s1, $s2",
+  (ins DataRegs:$s1, DataRegs:$s2), "xor $d, $s2",
   [(set DataRegs:$d, (xor DataRegs:$s1, DataRegs:$s2))]>;
 
 def imm_from_0_to_neg512 : Operand<i32>, PatLeaf<(imm), [{
@@ -540,9 +542,9 @@ def MOVsrc : SRC<0x82, (outs DataRegs:$d),
         "mov $d, $const4",
          [(set DataRegs:$d, immSExt4:$const4)]>;
 
-def MOVrlc  : MOV_CONST<0x3B,"mov", (ins s16imm:$const16) ,
+def MOVrlc  : MOV_CONST<0x3B,"mov", (ins s16imm:$const16),
               [(set DataRegs:$d, immSExt16:$const16)]>;
-def MOVUrlc : MOV_CONST<0xBB,"mov.u", (ins u16imm:$const16) ,
+def MOVUrlc : MOV_CONST<0xBB,"mov.u", (ins u16imm:$const16),
               [(set DataRegs:$d, immZExt16:$const16)]>;
 
 def MOVHrlc : MOV_CONST<0x7B, "movh", (ins i32imm:$const16), [/* No Pattern*/]>;
@@ -728,125 +730,64 @@ defm GE : COMPARE_32<0x14, "ge", TriCore_COND_GE>;
 
 
 // 64 bit Compare Instructions
-multiclass LOGIC_COMPARE<bits<7> op_s, bits<7> op_u,
-         string asmstring,  PatLeaf PF>
+multiclass LOGIC_COMPARE_S<bits<8> op_s, string asmstring, PatLeaf PF>
 {
- let Constraints="$d = $fsrc" in {
+  let Constraints="$d = $fsrc" in {
+    def rc : RC<0x8B, op_s{6-0},
+    (outs DataRegs:$d),
+    (ins DataRegs:$fsrc, DataRegs:$s1, s9imm:$const9),
+    !strconcat(asmstring, " $d, $s1, $const9"),
+    [( set DataRegs:$d,
+      (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, immSExt9:$const9, PF))]>;
 
-  def Urc : RC<0x8B, op_u,
-  (outs DataRegs:$d),
-  (ins DataRegs:$fsrc, DataRegs:$s1, u9imm:$const9),
-  !strconcat(asmstring, ".u $d, $s1, $const9"),
-  [( set DataRegs:$d,
-    (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, immZExt9:$const9, PF))]>;
-
-  def rc : RC<0x8B, op_s,
-  (outs DataRegs:$d),
-  (ins DataRegs:$fsrc, DataRegs:$s1, s9imm:$const9),
-  !strconcat(asmstring, " $d, $s1, $const9"),
-  [( set DataRegs:$d,
-    (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, immSExt9:$const9, PF))]>;
-
- }
+    def rr : RR<0x0B, op_s,
+    (outs DataRegs:$d),
+    (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
+    !strconcat(asmstring, " $d, $s1, $s2"),
+    [( set DataRegs:$d,
+      (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2, PF))]>;
+  }
 }
 
-//class LC_RR <bits<8> op2, string asmstring, PatLeaf PF>
-//   :RR<0x0B, op2,
-//    (outs DataRegs:$d),
-//    (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-//    !strconcat(asmstring, " $d, $s1, $s2"),
-//    [(set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-//     DataRegs:$s1, DataRegs:$s2, PF))]> {
-//
-// let Constraints="$d = $fsrc";
-//
-//}
-//
-//class LC_RC <bits<7> op2, string asmstring, PatLeaf PF>
-//   :RC<0x8B, op2,
-//    (outs DataRegs:$d),
-//    (ins DataRegs:$fsrc, DataRegs:$s1, s9imm:$const9),
-//    !strconcat(asmstring, " $d, $s1, $const9"),
-//    [( set DataRegs:$d,
-//    (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, immSExt9:$const9, PF))]>
-//{
-//
-// let Constraints="$d = $fsrc";
-//
-//}
-//
+multiclass LOGIC_COMPARE_U<bits<8> op_u, string asmstring, PatLeaf PF>
+{
+  let Constraints="$d = $fsrc" in {
+    def rc : RC<0x8B, op_u{6-0},
+    (outs DataRegs:$d),
+    (ins DataRegs:$fsrc, DataRegs:$s1, u9imm:$const9),
+    !strconcat(asmstring, " $d, $s1, $const9"),
+    [( set DataRegs:$d,
+      (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, immZExt9:$const9, PF))]>;
 
-defm AND_LT : LOGIC_COMPARE<0x22, 0x23, "and.lt", TriCore_LOGIC_AND_LT>;
-defm AND_GE : LOGIC_COMPARE<0x24, 0x25, "and.ge", TriCore_LOGIC_AND_GE>;
-defm OR_LT  : LOGIC_COMPARE<0x29, 0x2A, "or.lt",  TriCore_LOGIC_OR_LT>;
-defm OR_GE  : LOGIC_COMPARE<0x2B, 0x2C, "or.ge",  TriCore_LOGIC_OR_GE>;
-//
-//def AND_GE_Urr : LC_RR<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
-//def AND_LT_Urr : LC_RR<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
-//def AND_EQrr   : LC_RR<0x20, "and.eq"  , TriCore_LOGIC_AND_EQ>;
-//def AND_EQrc   : LC_RC<0x20, "and.eq"  , TriCore_LOGIC_AND_EQ>;
-//def OR_LTrr   : LC_RR<0x29, "or.lt"   , TriCore_LOGIC_OR_LT>;
-//def OR_GErr   : LC_RR<0x2B, "or.ge"   , TriCore_LOGIC_OR_GE>;
-//def OR_NErr   : LC_RR<0x28, "or.ne"   , TriCore_LOGIC_OR_NE>;
-//def OR_NErc   : LC_RC<0x28, "or.ne"   , TriCore_LOGIC_OR_NE>;
+    def rr : RR<0x0B, op_u,
+    (outs DataRegs:$d),
+    (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
+    !strconcat(asmstring, " $d, $s1, $s2"),
+    [( set DataRegs:$d,
+      (TriCoreLogicCmp DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2, PF))]>;
+  }
+}
 
-let Constraints="$d = $fsrc" in {
-def AND_GE_Urr : RR<0x0B, 0x25,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "and.ge.u $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_AND_GE)))]>;
+defm AND_EQ    : LOGIC_COMPARE_S<0x20, "and.eq",  TriCore_LOGIC_AND_EQ>;
+defm AND_NE    : LOGIC_COMPARE_S<0x21, "and.ne",  TriCore_LOGIC_AND_NE>;
+defm AND_LT    : LOGIC_COMPARE_S<0x22, "and.lt", TriCore_LOGIC_AND_LT>;
+defm AND_LT_U  : LOGIC_COMPARE_U<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
+defm AND_GE    : LOGIC_COMPARE_S<0x24, "and.ge", TriCore_LOGIC_AND_GE>;
+defm AND_GE_U  : LOGIC_COMPARE_U<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
 
-def AND_LT_Urr : RR<0x0B, 0x23,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "and.lt.u $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_AND_LT)))]>;
+defm OR_EQ     : LOGIC_COMPARE_S<0x27, "or.eq",  TriCore_LOGIC_OR_EQ>;
+defm OR_NE     : LOGIC_COMPARE_S<0x28, "or.ne",  TriCore_LOGIC_OR_NE>;
+defm OR_LT     : LOGIC_COMPARE_S<0x29, "or.lt",  TriCore_LOGIC_OR_LT>;
+defm OR_LT_U   : LOGIC_COMPARE_U<0x2A, "or.lt.u",  TriCore_LOGIC_OR_LT>;
+defm OR_GE     : LOGIC_COMPARE_S<0x2B, "or.ge",  TriCore_LOGIC_OR_GE>;
+defm OR_GE_U   : LOGIC_COMPARE_U<0x2C, "or.ge.u",  TriCore_LOGIC_OR_GE>;
 
-def AND_EQrr : RR<0x0B, 0x20,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "and.eq $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_AND_EQ)))]>;
-
-def AND_EQrc : RC<0x8B, 0x20,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, s9imm:$const9),
-         "and.eq $d, $s1, $const9",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, immSExt9:$const9, (i32 TriCore_LOGIC_AND_EQ)))]>;
-
-def OR_LTrr : RR<0x0B, 0x29,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "or.lt $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_OR_LT)))]>;
-
-def OR_GErr : RR<0x0B, 0x2B,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "or.ge $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_OR_GE)))]>;
-
-def OR_NErr : RR<0x0B, 0x28,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, DataRegs:$s2),
-         "or.ne $d, $s1, $s2",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, DataRegs:$s2, (i32 TriCore_LOGIC_OR_NE)))]>;
-
-def OR_NErc : RC<0x8B, 0x28,
-         (outs DataRegs:$d),
-         (ins DataRegs:$fsrc, DataRegs:$s1, s9imm:$const9),
-         "or.ne $d, $s1, $const9",
-         [( set DataRegs:$d, (TriCoreLogicCmp DataRegs:$fsrc,
-           DataRegs:$s1, immSExt9:$const9, (i32 TriCore_LOGIC_OR_NE)))]>;
-} // let Constraints="$d = $fsrc"
+defm XOR_EQ    : LOGIC_COMPARE_S<0x2F, "xor.eq",  TriCore_LOGIC_OR_EQ>;
+defm XOR_NE    : LOGIC_COMPARE_S<0x30, "xor.ne",  TriCore_LOGIC_OR_NE>;
+defm XOR_LT    : LOGIC_COMPARE_S<0x31, "xor.lt",  TriCore_LOGIC_OR_LT>;
+defm XOR_LT_U  : LOGIC_COMPARE_U<0x32, "xor.lt.u",  TriCore_LOGIC_OR_LT>;
+defm XOR_GE    : LOGIC_COMPARE_S<0x33, "xor.ge",  TriCore_LOGIC_OR_GE>;
+defm XOR_GE_U  : LOGIC_COMPARE_U<0x34, "xor.ge.u",  TriCore_LOGIC_OR_GE>;
 
 // Branch Instructions
 let Uses = [PC], Defs = [PC] in
@@ -857,14 +798,13 @@ multiclass JUMP_16<bits<8> op1_sb, bits<8> op1_sbr,
   def sb: SB<op1_sb, (outs),
      (ins jmptarget:$disp8),
      !strconcat(asmstring, " %d15, $disp8"),
-     [(TriCoreBrCC  bb:$disp8, D15, PF)]>;
+     [(TriCoreBrCC bb:$disp8, D15, PF)]>;
 
   def sbr: SBR<op1_sbr, (outs),
-     (ins jmptarget:$disp4, DataRegs:$s1),
+     (ins DataRegs:$s1, jmptarget:$disp4),
      !strconcat(asmstring, " $s1, $disp4"),
-     [(TriCoreBrCC  bb:$disp4, DataRegs:$s1, PF)]>;
+     [(TriCoreBrCC bb:$disp4, DataRegs:$s1, PF)]>;
 }
-
 
 let isBranch = 1, isTerminator = 1 in {
 // Direct branch
