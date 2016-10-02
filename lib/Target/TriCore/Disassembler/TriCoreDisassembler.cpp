@@ -966,21 +966,21 @@ DecodeRCInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::AND_EQrc:
     case TriCore::AND_NErc:
     case TriCore::AND_LTrc:
-    case TriCore::AND_LT_Urc:
+    case TriCore::AND_LTUrc:
     case TriCore::AND_GErc:
-    case TriCore::AND_GE_Urc:
+    case TriCore::AND_GEUrc:
     case TriCore::OR_EQrc:
     case TriCore::OR_NErc:
     case TriCore::OR_LTrc:
-    case TriCore::OR_LT_Urc:
+    case TriCore::OR_LTUrc:
     case TriCore::OR_GErc:
-    case TriCore::OR_GE_Urc:
+    case TriCore::OR_GEUrc:
     case TriCore::XOR_EQrc:
     case TriCore::XOR_NErc:
     case TriCore::XOR_LTrc:
-    case TriCore::XOR_LT_Urc:
+    case TriCore::XOR_LTUrc:
     case TriCore::XOR_GErc:
-    case TriCore::XOR_GE_Urc:
+    case TriCore::XOR_GEUrc:
       status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
       if (status == MCDisassembler::Success)
         status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
@@ -1215,21 +1215,21 @@ DecodeRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::AND_EQrr:
     case TriCore::AND_NErr:
     case TriCore::AND_LTrr:
-    case TriCore::AND_LT_Urr:
+    case TriCore::AND_LTUrr:
     case TriCore::AND_GErr:
-    case TriCore::AND_GE_Urr:
+    case TriCore::AND_GEUrr:
     case TriCore::OR_EQrr:
     case TriCore::OR_NErr:
     case TriCore::OR_LTrr:
-    case TriCore::OR_LT_Urr:
+    case TriCore::OR_LTUrr:
     case TriCore::OR_GErr:
-    case TriCore::OR_GE_Urr:
+    case TriCore::OR_GEUrr:
     case TriCore::XOR_EQrr:
     case TriCore::XOR_NErr:
     case TriCore::XOR_LTrr:
-    case TriCore::XOR_LT_Urr:
+    case TriCore::XOR_LTUrr:
     case TriCore::XOR_GErr:
-    case TriCore::XOR_GE_Urr:
+    case TriCore::XOR_GEUrr:
       status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
       if (status == MCDisassembler::Success)
         status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);

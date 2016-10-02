@@ -771,23 +771,23 @@ multiclass LOGIC_COMPARE_U<bits<8> op_u, string asmstring, PatLeaf PF>
 defm AND_EQ    : LOGIC_COMPARE_S<0x20, "and.eq",  TriCore_LOGIC_AND_EQ>;
 defm AND_NE    : LOGIC_COMPARE_S<0x21, "and.ne",  TriCore_LOGIC_AND_NE>;
 defm AND_LT    : LOGIC_COMPARE_S<0x22, "and.lt", TriCore_LOGIC_AND_LT>;
-defm AND_LT_U  : LOGIC_COMPARE_U<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
+defm AND_LTU  : LOGIC_COMPARE_U<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
 defm AND_GE    : LOGIC_COMPARE_S<0x24, "and.ge", TriCore_LOGIC_AND_GE>;
-defm AND_GE_U  : LOGIC_COMPARE_U<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
+defm AND_GEU  : LOGIC_COMPARE_U<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
 
 defm OR_EQ     : LOGIC_COMPARE_S<0x27, "or.eq",  TriCore_LOGIC_OR_EQ>;
 defm OR_NE     : LOGIC_COMPARE_S<0x28, "or.ne",  TriCore_LOGIC_OR_NE>;
 defm OR_LT     : LOGIC_COMPARE_S<0x29, "or.lt",  TriCore_LOGIC_OR_LT>;
-defm OR_LT_U   : LOGIC_COMPARE_U<0x2A, "or.lt.u",  TriCore_LOGIC_OR_LT>;
+defm OR_LTU   : LOGIC_COMPARE_U<0x2A, "or.lt.u",  TriCore_LOGIC_OR_LT>;
 defm OR_GE     : LOGIC_COMPARE_S<0x2B, "or.ge",  TriCore_LOGIC_OR_GE>;
-defm OR_GE_U   : LOGIC_COMPARE_U<0x2C, "or.ge.u",  TriCore_LOGIC_OR_GE>;
+defm OR_GEU   : LOGIC_COMPARE_U<0x2C, "or.ge.u",  TriCore_LOGIC_OR_GE>;
 
 defm XOR_EQ    : LOGIC_COMPARE_S<0x2F, "xor.eq",  TriCore_LOGIC_OR_EQ>;
 defm XOR_NE    : LOGIC_COMPARE_S<0x30, "xor.ne",  TriCore_LOGIC_OR_NE>;
 defm XOR_LT    : LOGIC_COMPARE_S<0x31, "xor.lt",  TriCore_LOGIC_OR_LT>;
-defm XOR_LT_U  : LOGIC_COMPARE_U<0x32, "xor.lt.u",  TriCore_LOGIC_OR_LT>;
+defm XOR_LTU  : LOGIC_COMPARE_U<0x32, "xor.lt.u",  TriCore_LOGIC_OR_LT>;
 defm XOR_GE    : LOGIC_COMPARE_S<0x33, "xor.ge",  TriCore_LOGIC_OR_GE>;
-defm XOR_GE_U  : LOGIC_COMPARE_U<0x34, "xor.ge.u",  TriCore_LOGIC_OR_GE>;
+defm XOR_GEU  : LOGIC_COMPARE_U<0x34, "xor.ge.u",  TriCore_LOGIC_OR_GE>;
 
 // Branch Instructions
 let Uses = [PC], Defs = [PC] in
