@@ -453,7 +453,7 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
       if (ImmSVal >=0 && ImmSVal < 32768)
         return CurDAG->getMachineNode(TriCore::MOVrlc, N, MVT::i32, ConstEImm);
       else if(ImmSVal >=32768 && ImmSVal < 65536)
-        return CurDAG->getMachineNode(TriCore::MOVUrlc, N, MVT::i32, ConstEImm);
+        return CurDAG->getMachineNode(TriCore::MOV_Urlc, N, MVT::i32, ConstEImm);
 
     }
     else if(ImmHi && (ImmLo == 0))

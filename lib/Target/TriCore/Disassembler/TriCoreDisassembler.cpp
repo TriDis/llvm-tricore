@@ -555,7 +555,7 @@ DecodeSRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s1/d.
   switch (Inst.getOpcode()) {
-    case TriCore::MOVAAsrr:
+    case TriCore::MOV_AAsrr:
       status = DecodeAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     case TriCore::ADDsrr:
@@ -576,7 +576,7 @@ DecodeSRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s2.
   switch (Inst.getOpcode()) {
-    case TriCore::MOVAAsrr:
+    case TriCore::MOV_AAsrr:
       status = DecodeAddrRegsRegisterClass(Inst, s2, Address, Decoder);
       break;
     default:
@@ -802,11 +802,11 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s1_d.
   switch (Inst.getOpcode()) {
-    case TriCore::STAbo:
+    case TriCore::ST_Abo:
       status = DecodeAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
-    case TriCore::LDDbo:
-    case TriCore::STDbo:
+    case TriCore::LD_Dbo:
+    case TriCore::ST_Dbo:
       status = DecodeExtRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     default:
@@ -966,21 +966,21 @@ DecodeRCInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::AND_EQrc:
     case TriCore::AND_NErc:
     case TriCore::AND_LTrc:
-    case TriCore::AND_LTUrc:
+    case TriCore::AND_LT_Urc:
     case TriCore::AND_GErc:
-    case TriCore::AND_GEUrc:
+    case TriCore::AND_GE_Urc:
     case TriCore::OR_EQrc:
     case TriCore::OR_NErc:
     case TriCore::OR_LTrc:
-    case TriCore::OR_LTUrc:
+    case TriCore::OR_LT_Urc:
     case TriCore::OR_GErc:
-    case TriCore::OR_GEUrc:
+    case TriCore::OR_GE_Urc:
     case TriCore::XOR_EQrc:
     case TriCore::XOR_NErc:
     case TriCore::XOR_LTrc:
-    case TriCore::XOR_LTUrc:
+    case TriCore::XOR_LT_Urc:
     case TriCore::XOR_GErc:
-    case TriCore::XOR_GEUrc:
+    case TriCore::XOR_GE_Urc:
       status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
       if (status == MCDisassembler::Success)
         status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
@@ -1177,7 +1177,7 @@ DecodeRLCInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
       status = DecodeDataRegsRegisterClass(Inst, s1, Address, Decoder);
       break;
     case TriCore::MOVrlc:
-    case TriCore::MOVUrlc:
+    case TriCore::MOV_Urlc:
     case TriCore::MOVHrlc:
       break;
   }
@@ -1206,30 +1206,30 @@ DecodeRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode d.
   switch (Inst.getOpcode()) {
-    case TriCore::ADDArr:
-    case TriCore::SUBArr:
-    case TriCore::MOVArr:
-    case TriCore::MOVAArr:
+    case TriCore::ADD_Arr:
+    case TriCore::SUB_Arr:
+    case TriCore::MOV_Arr:
+    case TriCore::MOV_AArr:
       status = DecodeAddrRegsRegisterClass(Inst, d, Address, Decoder);
       break;
     case TriCore::AND_EQrr:
     case TriCore::AND_NErr:
     case TriCore::AND_LTrr:
-    case TriCore::AND_LTUrr:
+    case TriCore::AND_LT_Urr:
     case TriCore::AND_GErr:
-    case TriCore::AND_GEUrr:
+    case TriCore::AND_GE_Urr:
     case TriCore::OR_EQrr:
     case TriCore::OR_NErr:
     case TriCore::OR_LTrr:
-    case TriCore::OR_LTUrr:
+    case TriCore::OR_LT_Urr:
     case TriCore::OR_GErr:
-    case TriCore::OR_GEUrr:
+    case TriCore::OR_GE_Urr:
     case TriCore::XOR_EQrr:
     case TriCore::XOR_NErr:
     case TriCore::XOR_LTrr:
-    case TriCore::XOR_LTUrr:
+    case TriCore::XOR_LT_Urr:
     case TriCore::XOR_GErr:
-    case TriCore::XOR_GEUrr:
+    case TriCore::XOR_GE_Urr:
       status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
       if (status == MCDisassembler::Success)
         status = DecodeDataRegsRegisterClass(Inst, d, Address, Decoder);
@@ -1243,8 +1243,8 @@ DecodeRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s1.
   switch (Inst.getOpcode()) {
-    case TriCore::ADDArr:
-    case TriCore::SUBArr:
+    case TriCore::ADD_Arr:
+    case TriCore::SUB_Arr:
       status = DecodeAddrRegsRegisterClass(Inst, s1, Address, Decoder);
       break;
     default:
@@ -1256,10 +1256,10 @@ DecodeRRInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s2.
   switch (Inst.getOpcode()) {
-    case TriCore::ADDArr:
-    case TriCore::SUBArr:
-    case TriCore::MOVDrr:
-    case TriCore::MOVAArr:
+    case TriCore::ADD_Arr:
+    case TriCore::SUB_Arr:
+    case TriCore::MOV_Drr:
+    case TriCore::MOV_AArr:
       status = DecodeAddrRegsRegisterClass(Inst, s2, Address, Decoder);
       break;
     default:

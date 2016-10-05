@@ -103,11 +103,11 @@ void TriCoreInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 
   unsigned Opc = 0;
   if (DataRegsDest && AddrSrc)
-    Opc = TriCore::MOVDrr;
+    Opc = TriCore::MOV_Drr;
   else if (AddrDest && DataRegsSrc)
-    Opc = TriCore::MOVArr;
+    Opc = TriCore::MOV_Arr;
   else if (AddrDest && AddrSrc)
-    Opc = TriCore::MOVAArr;
+    Opc = TriCore::MOV_AArr;
 
   if (Opc) {
     MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc), DestReg);

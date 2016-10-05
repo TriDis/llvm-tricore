@@ -104,7 +104,7 @@ TriCoreRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     int Offset = MFI->getObjectOffset(FI);    
     Offset = -Offset;
     const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
-    MI.setDesc(TII.get(TriCore::MOVDrr));
+    MI.setDesc(TII.get(TriCore::MOV_Drr));
     MI.getOperand(FIOperandNum).ChangeToRegister(BasePtr, false);
 
     if (Offset == 0)

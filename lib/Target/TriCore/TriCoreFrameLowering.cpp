@@ -105,7 +105,7 @@ void TriCoreFrameLowering::emitPrologue(MachineFunction &MF,
 
   if (hasFP(MF)) {
     MachineFunction::iterator I;
-    BuildMI(MBB, MBBI, dl, TII.get(TriCore::MOVAAsrr), TriCore::A14)
+    BuildMI(MBB, MBBI, dl, TII.get(TriCore::MOV_AAsrr), TriCore::A14)
               .addReg(TriCore::A10);
 
     // Mark the FramePtr as live-in in every block except the entry
@@ -117,12 +117,12 @@ void TriCoreFrameLowering::emitPrologue(MachineFunction &MF,
   unsigned StackReg = TriCore::A10;
   unsigned OffsetReg = materializeOffset(MF, MBB, MBBI, (unsigned)StackSize);
   if (OffsetReg) {
-    BuildMI(MBB, MBBI, dl, TII.get(TriCore::SUBArr), StackReg)
+    BuildMI(MBB, MBBI, dl, TII.get(TriCore::SUB_Arr), StackReg)
         .addReg(StackReg)
         .addReg(OffsetReg)
         .setMIFlag(MachineInstr::FrameSetup);
   } else {
-    BuildMI(MBB, MBBI, dl, TII.get(TriCore::SUBAsc))
+    BuildMI(MBB, MBBI, dl, TII.get(TriCore::SUB_Asc))
         .addImm(StackSize)
         .setMIFlag(MachineInstr::FrameSetup);
   }

@@ -246,7 +246,7 @@ let isCommutable = 1 in {
    "add $d, $s1, $s2",
    [(set i32:$d, (add i32:$s1, i32:$s2))]>;
 
- def ADDArr : RR<0x01, 0x01, (outs AddrRegs:$d),
+ def ADD_Arr : RR<0x01, 0x01, (outs AddrRegs:$d),
    (ins AddrRegs:$s1, AddrRegs:$s2),
    "add.a $d, $s1, $s2",
    [(set AddrRegs:$d, (add AddrRegs:$s1, AddrRegs:$s2))]>;
@@ -342,10 +342,10 @@ def SUBi64 : Pseudo<(outs ExtRegs:$d),
 } //let Defs = [PSW]
 
 let Defs = [A10], Uses = [A10] in
-def SUBAsc : SC<0x20, (outs), (ins u8imm:$const8), "sub.a %a10, $const8",
+def SUB_Asc : SC<0x20, (outs), (ins u8imm:$const8), "sub.a %a10, $const8",
   [(set A10, (sub A10, immZExt8:$const8) )]>;
 
-def SUBArr : RR<0x01, 0x02, (outs AddrRegs:$d),
+def SUB_Arr : RR<0x01, 0x02, (outs AddrRegs:$d),
   (ins AddrRegs:$s1, AddrRegs:$s2), "sub.a $d, $s1, $s2",
   [(set AddrRegs:$d, (sub AddrRegs:$s1, AddrRegs:$s2) )]>;
 
@@ -527,14 +527,14 @@ class MOV_CONST<bits<8> opcode, string opstr, dag ins, list<dag> pattern>
  !strconcat(opstr, " $d, $const16"), pattern>;
 
 def MOVrr   : MOV_RR<0x0B, 0x1F, "mov", DataRegs, DataRegs>;
-def MOVDrr  : MOV_RR<0x01, 0x4C, "mov.d", DataRegs, AddrRegs>;
-def MOVArr  : MOV_RR<0x01, 0x63, "mov.a", AddrRegs, DataRegs>;
+def MOV_Drr  : MOV_RR<0x01, 0x4C, "mov.d", DataRegs, AddrRegs>;
+def MOV_Arr  : MOV_RR<0x01, 0x63, "mov.a", AddrRegs, DataRegs>;
 
-def MOVAAsrr : SRR<0x40, (outs AddrRegs:$d),
+def MOV_AAsrr : SRR<0x40, (outs AddrRegs:$d),
             (ins AddrRegs:$s2),
             "mov.aa $d, $s2", [] >;
 
-def MOVAArr : MOV_RR<0x01, 0x00, "mov.aa", AddrRegs, AddrRegs>;
+def MOV_AArr : MOV_RR<0x01, 0x00, "mov.aa", AddrRegs, AddrRegs>;
 
 
 def MOVsrc : SRC<0x82, (outs DataRegs:$d),
@@ -544,7 +544,7 @@ def MOVsrc : SRC<0x82, (outs DataRegs:$d),
 
 def MOVrlc  : MOV_CONST<0x3B,"mov", (ins s16imm:$const16),
               [(set DataRegs:$d, immSExt16:$const16)]>;
-def MOVUrlc : MOV_CONST<0xBB,"mov.u", (ins u16imm:$const16),
+def MOV_Urlc : MOV_CONST<0xBB,"mov.u", (ins u16imm:$const16),
               [(set DataRegs:$d, immZExt16:$const16)]>;
 
 def MOVHrlc : MOV_CONST<0x7B, "movh", (ins i32imm:$const16), [/* No Pattern*/]>;
@@ -577,49 +577,49 @@ class AlignedLoad<bits<6> op2, string opstr, PatFrag PF,
          !strconcat(opstr, " $d, $memri"),
          [(set RC:$d, (intType (PF addr:$memri)))]>{ let mayLoad = 1; }
 
-def LDBbo  : AlignedLoad<0x20, "ld.b"  , sextloadi8>;
-def LDBUbo : AlignedLoad<0x21, "ld.bu" , zextloadi8>;
-def LDHbo  : AlignedLoad<0x22, "ld.h"  , sextloadi16>;
-def LDHUbo : AlignedLoad<0x23, "ld.hu" , zextloadi16>;
-def LDWbo  : AlignedLoad<0x24, "ld.w"  , load>;
-def LDDbo  : AlignedLoad<0x25, "ld.d"  , load, ExtRegs, i64>;
+def LD_Bbo  : AlignedLoad<0x20, "ld.b"  , sextloadi8>;
+def LD_BUbo : AlignedLoad<0x21, "ld.bu" , zextloadi8>;
+def LD_Hbo  : AlignedLoad<0x22, "ld.h"  , sextloadi16>;
+def LD_HUbo : AlignedLoad<0x23, "ld.hu" , zextloadi16>;
+def LD_Wbo  : AlignedLoad<0x24, "ld.w"  , load>;
+def LD_Dbo  : AlignedLoad<0x25, "ld.d"  , load, ExtRegs, i64>;
 
-def LDWbol : BOL<0x19, (outs DataRegs:$d),
+def LD_Wbol : BOL<0x19, (outs DataRegs:$d),
    (ins memsrc:$memri),
    "ld.w $d, $memri",
    [(set DataRegs:$d, (load addr:$memri))]>{ let mayLoad = 1; }
 
-def : Pat<(extloadi8 addr:$src), (LDBbo addr:$src)>;
-def : Pat<(extloadi16 addr:$src), (LDHbo addr:$src)>;
+def : Pat<(extloadi8 addr:$src), (LD_Bbo addr:$src)>;
+def : Pat<(extloadi16 addr:$src), (LD_Hbo addr:$src)>;
 
 let Predicates = [isnotPointer] in {
- def STBbo : BO<0x89, 0x20,(outs), (ins DataRegs:$d, memsrc:$memri),
+ def ST_Bbo : BO<0x89, 0x20,(outs), (ins DataRegs:$d, memsrc:$memri),
    "st.b $memri, $d",
    [(truncstorei8 DataRegs:$d, addr:$memri)]>;
 
- def STHbo : BO<0x89, 0x22,(outs), (ins DataRegs:$d, memsrc:$memri),
+ def ST_Hbo : BO<0x89, 0x22,(outs), (ins DataRegs:$d, memsrc:$memri),
    "st.h $memri, $d",
    [(truncstorei16 DataRegs:$d, addr:$memri)]>;
 
- def STWbo : BO<0x89, 0x24, (outs), (ins DataRegs:$d, memsrc:$memri),
+ def ST_Wbo : BO<0x89, 0x24, (outs), (ins DataRegs:$d, memsrc:$memri),
    "st.w $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
 
- def STDbo : BO<0x89, 0x25, (outs), (ins ExtRegs:$d, memsrc:$memri),
+ def ST_Dbo : BO<0x89, 0x25, (outs), (ins ExtRegs:$d, memsrc:$memri),
    "st.d $memri, $d",
    [(store ExtRegs:$d, addr:$memri)]>;
 
  def : Pat<(truncstorei32 ExtRegs:$d, addr:$memri),
-    (STWbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
+    (ST_Wbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
 
  def : Pat<(truncstorei8 ExtRegs:$d, addr:$memri),
-     (STWbo (ANDrc (EXTRACT_SUBREG ExtRegs:$d, subreg_even),
+     (ST_Wbo (ANDrc (EXTRACT_SUBREG ExtRegs:$d, subreg_even),
      (i32 255)), addr:$memri)>;
 } // let Predicates = [isnotPointer]
 
 
 let Predicates = [isPointer] in
-  def STAbo : BO<0x89, 0x26, (outs), (ins AddrRegs:$d, memsrc:$memri),
+  def ST_Abo : BO<0x89, 0x26, (outs), (ins AddrRegs:$d, memsrc:$memri),
   "st.a $memri, $d",
   [(store i32:$d, addr:$memri)]>;
 
@@ -771,23 +771,23 @@ multiclass LOGIC_COMPARE_U<bits<8> op_u, string asmstring, PatLeaf PF>
 defm AND_EQ    : LOGIC_COMPARE_S<0x20, "and.eq",  TriCore_LOGIC_AND_EQ>;
 defm AND_NE    : LOGIC_COMPARE_S<0x21, "and.ne",  TriCore_LOGIC_AND_NE>;
 defm AND_LT    : LOGIC_COMPARE_S<0x22, "and.lt", TriCore_LOGIC_AND_LT>;
-defm AND_LTU  : LOGIC_COMPARE_U<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
+defm AND_LT_U  : LOGIC_COMPARE_U<0x23, "and.lt.u", TriCore_LOGIC_AND_LT>;
 defm AND_GE    : LOGIC_COMPARE_S<0x24, "and.ge", TriCore_LOGIC_AND_GE>;
-defm AND_GEU  : LOGIC_COMPARE_U<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
+defm AND_GE_U  : LOGIC_COMPARE_U<0x25, "and.ge.u", TriCore_LOGIC_AND_GE>;
 
 defm OR_EQ     : LOGIC_COMPARE_S<0x27, "or.eq",  TriCore_LOGIC_OR_EQ>;
 defm OR_NE     : LOGIC_COMPARE_S<0x28, "or.ne",  TriCore_LOGIC_OR_NE>;
 defm OR_LT     : LOGIC_COMPARE_S<0x29, "or.lt",  TriCore_LOGIC_OR_LT>;
-defm OR_LTU   : LOGIC_COMPARE_U<0x2A, "or.lt.u",  TriCore_LOGIC_OR_LT>;
+defm OR_LT_U   : LOGIC_COMPARE_U<0x2A, "or.lt.u",  TriCore_LOGIC_OR_LT>;
 defm OR_GE     : LOGIC_COMPARE_S<0x2B, "or.ge",  TriCore_LOGIC_OR_GE>;
-defm OR_GEU   : LOGIC_COMPARE_U<0x2C, "or.ge.u",  TriCore_LOGIC_OR_GE>;
+defm OR_GE_U   : LOGIC_COMPARE_U<0x2C, "or.ge.u",  TriCore_LOGIC_OR_GE>;
 
 defm XOR_EQ    : LOGIC_COMPARE_S<0x2F, "xor.eq",  TriCore_LOGIC_OR_EQ>;
 defm XOR_NE    : LOGIC_COMPARE_S<0x30, "xor.ne",  TriCore_LOGIC_OR_NE>;
 defm XOR_LT    : LOGIC_COMPARE_S<0x31, "xor.lt",  TriCore_LOGIC_OR_LT>;
-defm XOR_LTU  : LOGIC_COMPARE_U<0x32, "xor.lt.u",  TriCore_LOGIC_OR_LT>;
+defm XOR_LT_U  : LOGIC_COMPARE_U<0x32, "xor.lt.u",  TriCore_LOGIC_OR_LT>;
 defm XOR_GE    : LOGIC_COMPARE_S<0x33, "xor.ge",  TriCore_LOGIC_OR_GE>;
-defm XOR_GEU  : LOGIC_COMPARE_U<0x34, "xor.ge.u",  TriCore_LOGIC_OR_GE>;
+defm XOR_GE_U  : LOGIC_COMPARE_U<0x34, "xor.ge.u",  TriCore_LOGIC_OR_GE>;
 
 // Branch Instructions
 let Uses = [PC], Defs = [PC] in
@@ -968,36 +968,36 @@ def : Pat<(i64 imm:$src),
 def : Pat<(i64 (sextloadi32 addr:$offset)),
   (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
              (SHArc ( EXTRACT_SUBREG (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
-               (LDWbo addr:$offset), subreg_even), subreg_even),
+               (LD_Wbo addr:$offset), subreg_even), subreg_even),
                (i32 -31)), subreg_odd)>;
 
 def : Pat<(i64 (zextloadi32 addr:$offset)),
   (INSERT_SUBREG( i64 (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
-                         (LDWbo addr:$offset), subreg_even)),
+                         (LD_Wbo addr:$offset), subreg_even)),
                          (MOVrlc 0), subreg_odd)>;
 
 def : Pat<(i64 (sextloadi16 addr:$offset)),
   (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
              (SHArc ( EXTRACT_SUBREG (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
-               ( EXTRrrpw (LDHbo addr:$offset),
+               ( EXTRrrpw (LD_Hbo addr:$offset),
                  (i32 0), (i32 16) ), subreg_even), subreg_even)
              , (i32 -31)), subreg_odd)>;
 
 def : Pat<(i64 (zextloadi16 addr:$offset)),
   (INSERT_SUBREG( i64 (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
-                         (LDWbo addr:$offset), subreg_even)),
+                         (LD_Wbo addr:$offset), subreg_even)),
                          (MOVrlc 0), subreg_odd)>;
 
 
 def : Pat<(i64 (sextloadi8 addr:$offset)),
   (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
              (SHArc ( EXTRACT_SUBREG (INSERT_SUBREG (i64 (IMPLICIT_DEF)) ,
-               ( EXTRrrpw (LDBbo addr:$offset),
+               ( EXTRrrpw (LD_Bbo addr:$offset),
                  (i32 0), (i32 8) ), subreg_even), subreg_even)
              , (i32 -31)), subreg_odd)>;
 
 def : Pat<(i64 (zextloadi8 addr:$offset)),
   (INSERT_SUBREG( i64 (INSERT_SUBREG (i64 (IMPLICIT_DEF)),
-                         (LDBUbo addr:$offset), subreg_even)),
+                         (LD_BUbo addr:$offset), subreg_even)),
                          (MOVrlc 0), subreg_odd)>;
 
