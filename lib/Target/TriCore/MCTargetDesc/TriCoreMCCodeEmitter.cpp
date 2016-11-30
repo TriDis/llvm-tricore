@@ -55,7 +55,7 @@ public:
                              SmallVectorImpl<MCFixup> &Fixups,
                              const MCSubtargetInfo &STI) const;
 
-  unsigned getMemSrcValue(const MCInst &MI, unsigned OpIdx,
+  unsigned getBaseOffsetValue(const MCInst &MI, unsigned OpIdx,
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const;
 
@@ -161,7 +161,7 @@ unsigned TriCoreMCCodeEmitter::getMachineOpValue(const MCInst &MI,
   return 0;
 }
 
-unsigned TriCoreMCCodeEmitter::getMemSrcValue(const MCInst &MI, unsigned OpIdx,
+unsigned TriCoreMCCodeEmitter::getBaseOffsetValue(const MCInst &MI, unsigned OpIdx,
                                           SmallVectorImpl<MCFixup> &Fixups,
                                           const MCSubtargetInfo &STI) const {
   const MCOperand &RegMO = MI.getOperand(OpIdx);

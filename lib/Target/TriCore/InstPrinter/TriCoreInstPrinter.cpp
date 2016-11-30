@@ -81,6 +81,19 @@ void TriCoreInstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
   }
 }
 
+void TriCoreInstPrinter::printDoubleAddrRegs(const MCInst *MI, unsigned OpNo,
+                                             raw_ostream &O) {
+  const MCOperand &Addr = MI->getOperand(OpNo);
+
+  if (Addr.isReg()) {
+    O << "[";
+    printRegName(O, Addr.getReg());
+    O << "/";
+    printRegName(O, Addr.getReg()+1);
+    O << "]";
+  }
+}
+
 
 //===----------------------------------------------------------------------===//
 // PrintSExtImm<unsigned bits>
@@ -110,24 +123,116 @@ void TriCoreInstPrinter::printZExtImm(const MCInst *MI, int OpNo,
     printOperand(MI, OpNo, O);
 }
 
+// Print a 'abs' operand which is an addressing mode
+// Absolute
+//void TriCoreInstPrinter::printAddrABS(const MCInst *MI, unsigned OpNum,
+                                         //raw_ostream &O) {
 
-// Print a 'memsrc' operand which is a (Register, Offset) pair.
-void TriCoreInstPrinter::printAddrModeMemSrc(const MCInst *MI, unsigned OpNum,
+  //const MCOperand &Op = MI->getOperand(OpNo);
+  //if (Op.isImm())
+    //O << Op.getImm();
+  //else {
+    //assert(Op.isExpr() && "unknown absolute address");
+    //Op.getExpr()->print(O, &MAI);
+  //}
+//}
+
+// Print a 'bo' operand which is an addressing mode
+// Base+Offset
+void TriCoreInstPrinter::printAddrBO(const MCInst *MI, unsigned OpNum,
                                          raw_ostream &O) {
 
   const MCOperand &Base = MI->getOperand(OpNum);
-  const MCOperand &Disp = MI->getOperand(OpNum+1);
+  const MCOperand &Offset = MI->getOperand(OpNum+1);
+
+  unsigned Opcode = MI->getOpcode();
+
+  switch (Opcode) {
+    default:
+      // Print register base field
+      if (Base.isReg())
+          O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "]";
+
+      if (Offset.isExpr())
+        Offset.getExpr()->print(O, &MAI);
+      else {
+        assert(Offset.isImm() && "Expected immediate in displacement field");
+        O << " " << Offset.getImm();
+      }
+      break;
+}
+
+// Print a 'preincbo' operand which is an addressing mode
+// Pre-increment Base+Offset
+void TriCoreInstPrinter::printAddrPreIncBO(const MCInst *MI, unsigned OpNum,
+                                         raw_ostream &O) {
+
+  const MCOperand &Base = MI->getOperand(OpNum);
+  const MCOperand &Offset = MI->getOperand(OpNum+1);
 
   // Print register base field
-  if (Base.getReg())
-      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "]";
+  if (Base.isReg())
+      O << "[+%" << StringRef(getRegisterName(Base.getReg())).lower() << "]";
 
-  if (Disp.isExpr())
-    Disp.getExpr()->print(O, &MAI);
+  if (Offset.isExpr())
+    Offset.getExpr()->print(O, &MAI);
   else {
-    assert(Disp.isImm() && "Expected immediate in displacement field");
-    O << Disp.getImm();
+    assert(Offset.isImm() && "Expected immediate in displacement field");
+    O << " " << Offset.getImm();
   }
+}
+
+// Print a 'postincbo' operand which is an addressing mode
+// Post-increment Base+Offset
+void TriCoreInstPrinter::printAddrPostIncBO(const MCInst *MI, unsigned OpNum,
+                                         raw_ostream &O) {
+
+  const MCOperand &Base = MI->getOperand(OpNum);
+  const MCOperand &Offset = MI->getOperand(OpNum+1);
+
+  // Print register base field
+  if (Base.isReg())
+      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "+]";
+
+  if (Offset.isExpr())
+    Offset.getExpr()->print(O, &MAI);
+  else {
+    assert(Offset.isImm() && "Expected immediate in displacement field");
+    O << " " << Offset.getImm();
+  }
+}
+
+// Print a 'circbo' operand which is an addressing mode
+// Circular Base+Offset
+void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,
+                                         raw_ostream &O) {
+
+  const MCOperand &Base = MI->getOperand(OpNum);
+  const MCOperand &Offset = MI->getOperand(OpNum+1);
+
+  // Print register base field
+  if (Base.isReg())
+      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "/%" << StringRef(getRegisterName(Base.getReg()+1)).lower() << "+c]";
+
+  if (Offset.isExpr())
+    Offset.getExpr()->print(O, &MAI);
+  else {
+    assert(Offset.isImm() && "Expected immediate in displacement field");
+    O << " " << Offset.getImm();
+  }
+}
+
+// Print a 'bitrevbo' operand which is an addressing mode
+// Bit-Reverse Base+Offset
+void TriCoreInstPrinter::printAddrBitRevBO(const MCInst *MI, unsigned OpNum,
+                                         raw_ostream &O) {
+
+  const MCOperand &Base = MI->getOperand(OpNum);
+  const MCOperand &Offset = MI->getOperand(OpNum+1);
+
+  // Print register base field
+  if (Base.isReg())
+      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "/%" << StringRef(getRegisterName(Base.getReg()+1)).lower() << "+r]";
 }
 
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
@@ -147,26 +252,4 @@ void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 
   assert(Op.isExpr() && "unknown operand kind in printOperand");
   printExpr(Op.getExpr(), &MAI, O);
-}
-
-void TriCoreInstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
-                                       raw_ostream &O) {
-  unsigned CC = MI->getOperand(OpNo).getImm();
-
-  switch (CC) {
-  default:
-   llvm_unreachable("Unsupported CC code");
-  case 0:
-   O << "eq";
-   break;
-  case 1:
-   O << "ne";
-   break;
-  case 3:
-   O << "lt";
-   break;
-  case 2:
-   O << "ge";
-   break;
-  }
 }

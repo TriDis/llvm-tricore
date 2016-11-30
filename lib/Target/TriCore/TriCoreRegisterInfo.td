@@ -108,7 +108,7 @@ def FCX  : TriCorePSReg<3, "fcx">, DwarfRegNum<[43]>;
 //===----------------------------------------------------------------------===//
 
 def DataRegs : RegisterClass<"TriCore", [i32], 32, (add
-    // Implict Data
+    // Implicit Data
     D15,
     // Mostly Used
     D2, D3,

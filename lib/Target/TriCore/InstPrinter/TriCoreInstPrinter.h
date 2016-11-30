@@ -38,7 +38,6 @@ public:
 
 
 private:
-  void printAddrModeMemSrc(const MCInst *MI, unsigned OpNum, raw_ostream &O);
   void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   void printMemOperand(const MCInst *MI, int opNum, raw_ostream &O);
   template <unsigned bits>
@@ -46,7 +45,12 @@ private:
   template <unsigned bits>
   void printZExtImm(const MCInst *MI, int OpNo, raw_ostream &O);
   void printPCRelImmOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
-  void printCCOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  void printDoubleAddrRegs(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  void printAddrBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPreIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPostIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrCircBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrBitRevBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
 
 };
 } // end namespace llvm
