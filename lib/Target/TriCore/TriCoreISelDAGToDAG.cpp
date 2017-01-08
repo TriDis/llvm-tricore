@@ -98,7 +98,7 @@ public:
   SDNode *SelectConstant(SDNode *N);
 
   bool SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset);
-  bool SelectAddr_new(SDValue N, SDValue &Base, SDValue &Disp);
+  //bool SelectAddr_new(SDValue N, SDValue &Base, SDValue &Disp);
   bool MatchAddress(SDValue N, TriCoreISelAddressMode &AM);
   bool MatchWrapper(SDValue N, TriCoreISelAddressMode &AM);
   bool MatchAddressBase(SDValue N, TriCoreISelAddressMode &AM);
@@ -117,6 +117,7 @@ public:
 
 bool TriCoreDAGToDAGISel::ptyType = false;
 bool TriCoreDAGToDAGISel::isPointer() { return ptyType;}
+
 /// MatchWrapper - Try to match MSP430ISD::Wrapper node into an addressing mode.
 /// These wrap things that will resolve down into a symbol reference.  If no
 /// match is possible, this returns true, otherwise it returns false.
@@ -130,7 +131,6 @@ bool TriCoreDAGToDAGISel::MatchWrapper(SDValue N, TriCoreISelAddressMode &AM) {
     errs().changeColor(raw_ostream::WHITE,0); );
     return true;
   }
-
   SDValue N0 = N.getOperand(0);
 
   DEBUG(errs() << "Match Wrapper N => ";
@@ -142,6 +142,11 @@ bool TriCoreDAGToDAGISel::MatchWrapper(SDValue N, TriCoreISelAddressMode &AM) {
     AM.Disp += G->getOffset();
     DEBUG(errs() << "MatchWrapper->Displacement: " << AM.Disp );
     //AM.SymbolFlags = G->getTargetFlags();
+  } else if (ConstantPoolSDNode *CP = dyn_cast<ConstantPoolSDNode>(N0)) {
+    AM.CP = CP->getConstVal();
+    AM.Align = CP->getAlignment();
+    AM.Disp += CP->getOffset();
+    //AM.SymbolFlags = CP->getTargetFlags();
   }
   return false;
 }
@@ -230,7 +235,7 @@ bool TriCoreDAGToDAGISel::MatchAddress(SDValue N, TriCoreISelAddressMode &AM) {
 /// SelectAddr - returns true if it is able pattern match an addressing mode.
 /// It returns the operands which make up the maximal addressing mode it can
 /// match by reference.
-bool TriCoreDAGToDAGISel::SelectAddr_new(SDValue N,
+bool TriCoreDAGToDAGISel::SelectAddr(SDValue N,
     SDValue &Base, SDValue &Disp) {
   TriCoreISelAddressMode AM;
 
@@ -259,8 +264,13 @@ bool TriCoreDAGToDAGISel::SelectAddr_new(SDValue N,
   if (AM.GV) {
     DEBUG(errs() <<"AM.GV" );
     //GlobalAddressSDNode *gAdd = dyn_cast<GlobalAddressSDNode>(N.getOperand(0));
-    Base = N;
+    //Base = N;
     Disp = CurDAG->getTargetConstant(AM.Disp, N, MVT::i32);
+  }
+  else if (AM.CP) {
+    outs()<<"AM.CP\n";
+    Disp = CurDAG->getTargetConstantPool(AM.CP, MVT::i32,
+        AM.Align, AM.Disp, 0/*AM.SymbolFlags*/);
   }
   else {
     DEBUG(errs()<<"SelectAddr -> AM.Disp\n";
@@ -273,46 +283,29 @@ bool TriCoreDAGToDAGISel::SelectAddr_new(SDValue N,
 }
 
 
-bool TriCoreDAGToDAGISel::SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
-
-
-  return SelectAddr_new(Addr, Base, Offset);
-
-  outs().changeColor(raw_ostream::GREEN,1);
-  Addr.dump();
-  outs() <<"Addr Opcode: " << Addr.getOpcode() <<"\n";
-  outs().changeColor(raw_ostream::WHITE,0);
-
-
-  if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
-    //    EVT PtrVT = getTargetLowering()->getPointerTy(*TM.getDataLayout());
-    EVT PtrVT = getTargetLowering()->getPointerTy(CurDAG->getDataLayout());
-    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), PtrVT);
-    Offset = CurDAG->getTargetConstant(0, Addr, MVT::i32);
-    //    outs().changeColor(raw_ostream::RED)<<"Selecting Frame!\n";
-    //    outs().changeColor(raw_ostream::WHITE);
-
-    return true;
-  }
-
-
-  outs().changeColor(raw_ostream::BLUE,1);
-  Addr.dump();
-  outs().changeColor(raw_ostream::WHITE,0);
-
-  if (Addr.getOpcode() == ISD::TargetExternalSymbol ||
-      Addr.getOpcode() == ISD::TargetGlobalAddress ||
-      Addr.getOpcode() == ISD::TargetGlobalTLSAddress) {
-    outs()<<"This is working!!!!!!!!!!!!!!\n";
-    //Base = Addr;
-    //Offset = CurDAG->getTargetConstant(gAdd->getOffset(), Addr, MVT::i32);
-    return false;
-  }
-
-  Base = Addr;
-  Offset = CurDAG->getTargetConstant(0, Addr, MVT::i32);
-  return true;
-}
+//bool TriCoreDAGToDAGISel::SelectAddr(SDValue Addr, SDValue &Base, SDValue &Offset) {
+//
+//
+//  return SelectAddr_new(Addr, Base, Offset);
+//
+//  if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
+//    EVT PtrVT = getTargetLowering()->getPointerTy(*TM.getDataLayout());
+//    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), PtrVT);
+//    Offset = CurDAG->getTargetConstant(0, Addr, MVT::i32);
+//    return true;
+//  }
+//
+//  if (Addr.getOpcode() == ISD::TargetExternalSymbol ||
+//      Addr.getOpcode() == ISD::TargetGlobalAddress ||
+//      Addr.getOpcode() == ISD::TargetGlobalTLSAddress) {
+//    return false; // direct calls.
+//  }
+//
+//  Base = Addr;
+//  Offset = CurDAG->getTargetConstant(0, Addr, MVT::i32);
+//  return true;
+//
+//  }
 
 // Returns one plus the index of the least significant
 // 1-bit of x, or if x is zero, returns zero.
@@ -357,6 +350,8 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
        * imask instruction. Only if it fails, then we proceed to generate
        * pseudo moves.
        */
+
+      outs() << ConstVal->getValueType(0).getEVTString() << "\n";
       uint32_t lowerByte  = ImmVal & 0x00000000ffffffff;
       uint32_t higherByte = ImmVal>>32;
       uint64_t width = 0;
@@ -421,11 +416,6 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
 
     }
 
-//    if ((ImmVal & SupportedMask) != ImmVal) {
-////      outs() <<" Immediate size not supported!\n";
-//      return SelectCode(N);
-//    }
-
     // Select the low part of the immediate move.
     uint64_t LoMask = 0xffff;
     uint64_t HiMask = 0xffff0000;
@@ -434,7 +424,7 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
 
 //    outs() << "SLo: " << ImmSLo << "\n";
     uint64_t ImmHi = (ImmVal & HiMask);
-    SDValue ConstLo = CurDAG->getTargetConstant(ImmLo, N, MVT::i32);
+//    SDValue ConstLo = CurDAG->getTargetConstant(ImmLo, N, MVT::i32);
     SDValue ConstSImm = CurDAG->getTargetConstant(ImmSVal, N, MVT::i32);
     SDValue ConstEImm = CurDAG->getTargetConstant(ImmVal, N, MVT::i32);
     SDValue ConstHi;
@@ -446,14 +436,14 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
       hiShift = 65536 + hiShift;
 
     ConstHi = CurDAG->getTargetConstant(hiShift, N, MVT::i32);
-
+    SDValue ConstSLo = CurDAG->getTargetConstant(ImmLo_ext64, N, MVT::i32);
     MachineSDNode *Move;
 
     if ((ImmHi == 0) && ImmLo) {
       if (ImmSVal >=0 && ImmSVal < 32768)
-        return CurDAG->getMachineNode(TriCore::MOVrlc, N, MVT::i32, ConstEImm);
+        return CurDAG->getMachineNode(TriCore::MOVrlc, N, MVT::i32, ConstSImm);
       else if(ImmSVal >=32768 && ImmSVal < 65536)
-        return CurDAG->getMachineNode(TriCore::MOV_Urlc, N, MVT::i32, ConstEImm);
+        return CurDAG->getMachineNode(TriCore::MOVUrlc, N, MVT::i32, ConstEImm);
 
     }
     else if(ImmHi && (ImmLo == 0))
@@ -469,13 +459,13 @@ SDNode *TriCoreDAGToDAGISel::SelectConstant(SDNode *N) {
 
       if( (ImmSLo >= -8 && ImmSLo < 8 ) || ImmLo < 8)
         Move = CurDAG->getMachineNode(TriCore::ADDsrc, N, MVT::i32,
-                                            SDValue(Move,0), ConstLo);
-      else if(ImmLo >=8 && ImmLo < 256)
-        Move = CurDAG->getMachineNode(TriCore::ADDrc, N, MVT::i32,
-                                      SDValue(Move,0), ConstLo);
+                                            SDValue(Move,0), ConstSLo);
+//      else if(ImmLo >=8 && ImmLo < 256)
+//        Move = CurDAG->getMachineNode(TriCore::ADDrc, N, MVT::i32,
+//                                      SDValue(Move,0), ConstSLo);
       else
         Move = CurDAG->getMachineNode(TriCore::ADDIrlc, N, MVT::i32,
-                                              SDValue(Move,0), ConstLo);
+                                              SDValue(Move,0), ConstSLo);
       }
 
     return Move;
@@ -492,9 +482,19 @@ SDNode *TriCoreDAGToDAGISel::Select(SDNode *N) {
   switch (N->getOpcode()) {
   case ISD::Constant:
     return SelectConstant(N);
+  case ISD::ConstantPool: {
+    ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(N);
+    const Constant* cst = cp->getConstVal();
+    outs() << "This is constPool!\n";
+    outs() << "Value: " << *cst << "\n";
+
+    break;
+  }
   case ISD::FrameIndex: {
     int FI = cast<FrameIndexSDNode>(N)->getIndex();
     SDValue TFI = CurDAG->getTargetFrameIndex(FI, MVT::i32);
+//    outs() <<"N getNumValues: "<< N->getNumValues()<< "\n";
+//    outs() <<"N type: "<< N->getValueType(0).getEVTString()<< "\n";
     if (N->hasOneUse()) {
       return CurDAG->SelectNodeTo(N, TriCore::ADDrc, MVT::i32, TFI,
           CurDAG->getTargetConstant(0, dl, MVT::i32));
@@ -503,11 +503,15 @@ SDNode *TriCoreDAGToDAGISel::Select(SDNode *N) {
         CurDAG->getTargetConstant(0, dl, MVT::i32));
   }
   case ISD::STORE: {
-    ptyType = false;
-    ptyType = (N->getOperand(1).getValueType() == MVT::iPTR) ?
+    ptyType = (N->getOperand(1)->getArgType() == (int64_t)MVT::iPTR) ?
         true : false;
     break;
   }
+//  case ISD::LOAD : {
+//    FrameIndexSDNode* FID = dyn_cast<FrameIndexSDNode>(N->getOperand(1));
+//    FID->ge
+//    break;
+//  }
 
 }
 
