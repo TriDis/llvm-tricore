@@ -184,40 +184,10 @@ def bl_target  : Operand<i32>;
 def b_target   : Operand<OtherVT>;
 def cc_val     : Operand<i32> { let PrintMethod = "printCondCode";  }
 
-def d_addr : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs);
-  let PrintMethod = "printDoubleAddrRegs";
-  //let EncoderMethod = "getBaseOffsetValue";
-}
-
 def bo : Operand<i32> {
   let MIOperandInfo = (ops AddrRegs, i32imm);
   let PrintMethod = "printAddrBO";
   let EncoderMethod = "getBaseOffsetValue";
-}
-
-def preincbo : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs, i32imm);
-  let PrintMethod = "printAddrPreIncBO";
-  let EncoderMethod = "getBaseOffsetValue";
-}
-
-def postincbo : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs, i32imm);
-  let PrintMethod = "printAddrPostIncBO";
-  let EncoderMethod = "getBaseOffsetValue";
-}
-
-def circbo : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs, i32imm);
-  let PrintMethod = "printAddrCircBO";
-  //let EncoderMethod = "getBaseOffsetValue";
-}
-
-def bitrevbo : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs);
-  let PrintMethod = "printAddrBitRevBO";
-  //let EncoderMethod = "getBaseOffsetValue";
 }
 
 //Nodes
@@ -600,27 +570,6 @@ def EXTRrrpw :  RRPW<0x37, 0b10, (outs DataRegs:$d),
   immZExt4:$width))]>;
 
 // Load/Store Instructions
-class LoadABS<bits<8> op1, bits<2> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs, ValueType intType = i32>
-        : ABS<op1, op2, (outs RC:$d),
-         (ins i32imm:$memri),
-         !strconcat(opstr, " $d, $memri"),
-         [(set RC:$d, (intType (PF imm:$memri)))]>{ let mayLoad = 1; }
-
-def LD_Babs  : LoadABS<0x05, 0x00, "ld.b"  , sextloadi8>;
-def LD_BUabs : LoadABS<0x05, 0x01, "ld.bu" , zextloadi8>;
-def LD_Habs  : LoadABS<0x05, 0x02, "ld.h"  , sextloadi16>;
-def LD_HUabs : LoadABS<0x05, 0x03, "ld.hu" , zextloadi16>;
-def LD_Wabs  : LoadABS<0x85, 0x00, "ld.w"  , load>;
-def LD_Dabs  : LoadABS<0x85, 0x01, "ld.d"  , load, ExtRegs,i64>;
-def LD_Aabs  : LoadABS<0x85, 0x02, "ld.a"  , load, AddrRegs>;
-def LD_DAabs : LoadABS<0x85, 0x03, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAabs : ABS<0x85, 0x03, (outs d_addr:$d),
-         //(ins i32imm:$memri), "ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load imm:$memri)))]>{ let mayLoad = 1; }
-def LD_Qabs  : LoadABS<0x45, 0x00, "ld.q"  , load>;
-
-
 class LoadBO<bits<6> op2, string opstr, PatFrag PF,
          RegisterClass RC = DataRegs, ValueType intType = i32>
         : BO<0x09, op2, (outs RC:$d),
@@ -634,191 +583,31 @@ def LD_Hbo  : LoadBO<0x22, "ld.h"  , sextloadi16>;
 def LD_HUbo : LoadBO<0x23, "ld.hu" , zextloadi16>;
 def LD_Wbo  : LoadBO<0x24, "ld.w"  , load>;
 def LD_Dbo  : LoadBO<0x25, "ld.d"  , load, ExtRegs, i64>;
-def LD_Abo  : LoadBO<0x26, "ld.a"  , load, AddrRegs>;
-def LD_DAbo : LoadBO<0x27, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAbo : BO<0x09, 0x27, (outs d_addr:$d),
-         //(ins bo:$memri), "ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
-def LD_Qbo  : LoadBO<0x28, "ld.q"  , load>;
-
-class LoadPreIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs, ValueType intType = i32>
-        : BO<0x09, op2, (outs RC:$d),
-         (ins preincbo:$memri),
-         !strconcat(opstr, " $d, $memri"),
-         [(set RC:$d, (intType (PF addr:$memri)))]>{ let mayLoad = 1; }
-
-def LD_Bpreincbo  : LoadPreIncBO<0x10, "ld.b"  , sextloadi8>;
-def LD_BUpreincbo : LoadPreIncBO<0x11, "ld.bu" , zextloadi8>;
-def LD_Hpreincbo  : LoadPreIncBO<0x12, "ld.h"  , sextloadi16>;
-def LD_HUpreincbo : LoadPreIncBO<0x13, "ld.hu" , zextloadi16>;
-def LD_Wpreincbo  : LoadPreIncBO<0x14, "ld.w"  , load>;
-def LD_Dpreincbo  : LoadPreIncBO<0x15, "ld.d"  , load, ExtRegs, i64>;
-def LD_Apreincbo  : LoadPreIncBO<0x16, "ld.a"  , load, AddrRegs>;
-def LD_DApreincbo : LoadPreIncBO<0x17, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DApreincbo : BO<0x09, 0x17, (outs d_addr:$d),
-         //(ins preincbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
-def LD_Qpreincbo  : LoadPreIncBO<0x18, "ld.q"  , load>;
-
-class LoadPostIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs, ValueType intType = i32>
-        : BO<0x09, op2, (outs RC:$d),
-         (ins postincbo:$memri),
-         !strconcat(opstr, " $d, $memri"),
-         [(set RC:$d, (intType (PF addr:$memri)))]>{ let mayLoad = 1; }
-
-def LD_Bpostincbo  : LoadPostIncBO<0x00, "ld.b"  , sextloadi8>;
-def LD_BUpostincbo : LoadPostIncBO<0x01, "ld.bu" , zextloadi8>;
-def LD_Hpostincbo  : LoadPostIncBO<0x02, "ld.h"  , sextloadi16>;
-def LD_HUpostincbo : LoadPostIncBO<0x03, "ld.hu" , zextloadi16>;
-def LD_Wpostincbo  : LoadPostIncBO<0x04, "ld.w"  , load>;
-def LD_Dpostincbo  : LoadPostIncBO<0x05, "ld.d"  , load, ExtRegs, i64>;
-def LD_Apostincbo  : LoadPostIncBO<0x06, "ld.a"  , load, AddrRegs>;
-def LD_DApostincbo : LoadPostIncBO<0x07, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DApostincbo : BO<0x09, 0x17, (outs d_addr:$d),
-         //(ins preincbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
-def LD_Qpostincbo  : LoadPostIncBO<0x08, "ld.q"  , load>;
-
-class LoadCircBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs, ValueType intType = i32>
-        : BO<0x29, op2, (outs RC:$d),
-         (ins circbo:$memri),
-         !strconcat(opstr, " $d, $memri"),
-         [(set RC:$d, (intType (PF addr:$memri)))]>{ let mayLoad = 1; }
-
-def LD_Bcircbo  : LoadCircBO<0x10, "ld.b"  , sextloadi8>;
-def LD_BUcircbo : LoadCircBO<0x11, "ld.bu" , zextloadi8>;
-def LD_Hcircbo  : LoadCircBO<0x12, "ld.h"  , sextloadi16>;
-def LD_HUcircbo : LoadCircBO<0x13, "ld.hu" , zextloadi16>;
-def LD_Wcircbo  : LoadCircBO<0x14, "ld.w"  , load>;
-def LD_Dcircbo  : LoadCircBO<0x15, "ld.d"  , load, ExtRegs, i64>;
-def LD_Acircbo  : LoadCircBO<0x16, "ld.a"  , load, AddrRegs>;
-def LD_DAcircbo : LoadCircBO<0x17, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAcircbo : BO<0x29, 0x17, (outs d_addr:$d),
-         //(ins circbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
-def LD_Qcircbo  : LoadCircBO<0x18, "ld.q"  , load>;
-
-class LoadBitRevBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs, ValueType intType = i32>
-        : BO<0x29, op2, (outs RC:$d),
-         (ins bitrevbo:$memri),
-         !strconcat(opstr, " $d, $memri"),
-         [(set RC:$d, (intType (PF addr:$memri)))]>{ let mayLoad = 1; }
-
-def LD_Bbitrevbo  : LoadBitRevBO<0x00, "ld.b"  , sextloadi8>;
-def LD_BUbitrevbo : LoadBitRevBO<0x01, "ld.bu" , zextloadi8>;
-def LD_Hbitrevbo  : LoadBitRevBO<0x02, "ld.h"  , sextloadi16>;
-def LD_HUbitrevbo : LoadBitRevBO<0x03, "ld.hu" , zextloadi16>;
-def LD_Wbitrevbo  : LoadBitRevBO<0x04, "ld.w"  , load>;
-def LD_Dbitrevbo  : LoadBitRevBO<0x05, "ld.d"  , load, ExtRegs, i64>;
-def LD_Abitrevbo  : LoadBitRevBO<0x06, "ld.a"  , load, AddrRegs>;
-def LD_DAbitrevbo : LoadBitRevBO<0x07, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAbitrevbo : BO<0x29, 0x07, (outs d_addr:$d),
-         //(ins bitrevbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
-def LD_Qbitrevbo  : LoadBitRevBO<0x08, "ld.q"  , load>;
 
 def LD_Wbol : BOL<0x19, (outs DataRegs:$d),
    (ins bo:$memri),
    "ld.w $d, $memri",
    [(set DataRegs:$d, (load addr:$memri))]>{ let mayLoad = 1; }
-def LD_Abol : BOL<0x99, (outs AddrRegs:$d),
-   (ins bo:$memri),
-   "ld.a $d, $memri",
-   [(set AddrRegs:$d, (load addr:$memri))]>{ let mayLoad = 1; }
 
 def : Pat<(extloadi8 addr:$src), (LD_Bbo addr:$src)>;
 def : Pat<(extloadi16 addr:$src), (LD_Hbo addr:$src)>;
 
-class StoreABS<bits<8> op1, bits<2> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : ABS<op1, op2, (outs),
-         (ins RC:$d, i32imm:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, imm:$memri)]>;
-
-class StoreBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins bo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StorePreIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins preincbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StorePostIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins postincbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StoreCircBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0xA9, op2, (outs RC:$d),
-         (ins circbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StoreBitRevBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0xA9, op2, (outs RC:$d),
-         (ins bitrevbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
 let Predicates = [isnotPointer] in {
-  def ST_Bbo  : StoreBO<0x20, "st.b"  , truncstorei8>;
-  def ST_BUbo : StoreBO<0x21, "st.bu" , truncstorei8>;
-  def ST_Hbo  : StoreBO<0x22, "st.h"  , truncstorei16>;
-  def ST_HUbo : StoreBO<0x23, "st.hu" , truncstorei16>;
-  def ST_Wbo  : StoreBO<0x24, "st.w"  , store>;
-  def ST_Dbo  : StoreBO<0x25, "st.d"  , store, ExtRegs>;
-  def ST_Qbo  : StoreBO<0x28, "st.q"  , store>;
+ def ST_Bbo : BO<0x89, 0x20,(outs), (ins DataRegs:$d, bo:$memri),
+   "st.b $memri, $d",
+   [(truncstorei8 DataRegs:$d, addr:$memri)]>;
 
-  def ST_Bpreincbo  : StorePreIncBO<0x10, "st.b"  , truncstorei8>;
-  def ST_BUpreincbo : StorePreIncBO<0x11, "st.bu" , truncstorei8>;
-  def ST_Hpreincbo  : StorePreIncBO<0x12, "st.h"  , truncstorei16>;
-  def ST_HUpreincbo : StorePreIncBO<0x13, "st.hu" , truncstorei16>;
-  def ST_Wpreincbo  : StorePreIncBO<0x14, "st.w"  , store>;
-  def ST_Dpreincbo  : StorePreIncBO<0x15, "st.d"  , store, ExtRegs>;
-  def ST_Qpreincbo  : StorePreIncBO<0x18, "st.q"  , store>;
+ def ST_Hbo : BO<0x89, 0x22,(outs), (ins DataRegs:$d, bo:$memri),
+   "st.h $memri, $d",
+   [(truncstorei16 DataRegs:$d, addr:$memri)]>;
 
-  def ST_Bpostincbo  : StorePostIncBO<0x00, "st.b"  , truncstorei8>;
-  def ST_BUpostincbo : StorePostIncBO<0x01, "st.bu" , truncstorei8>;
-  def ST_Hpostincbo  : StorePostIncBO<0x02, "st.h"  , truncstorei16>;
-  def ST_HUpostincbo : StorePostIncBO<0x03, "st.hu" , truncstorei16>;
-  def ST_Wpostincbo  : StorePostIncBO<0x04, "st.w"  , store>;
-  def ST_Dpostincbo  : StorePostIncBO<0x05, "st.d"  , store, ExtRegs>;
-  def ST_Qpostincbo  : StorePostIncBO<0x08, "st.q"  , store>;
+ def ST_Wbo : BO<0x89, 0x24, (outs), (ins DataRegs:$d, bo:$memri),
+   "st.w $memri, $d",
+   [(store DataRegs:$d, addr:$memri)]>;
 
-  def ST_Bcircbo  : StoreCircBO<0x10, "st.b"  , truncstorei8>;
-  def ST_BUcircbo : StoreCircBO<0x11, "st.bu" , truncstorei8>;
-  def ST_Hcircbo  : StoreCircBO<0x12, "st.h"  , truncstorei16>;
-  def ST_HUcircbo : StoreCircBO<0x13, "st.hu" , truncstorei16>;
-  def ST_Wcircbo  : StoreCircBO<0x14, "st.w"  , store>;
-  def ST_Dcircbo  : StoreCircBO<0x15, "st.d"  , store, ExtRegs>;
-  def ST_Qcircbo  : StoreCircBO<0x18, "st.q"  , store>;
-
-  def ST_Bbitrevbo  : StoreBitRevBO<0x00, "st.b"  , truncstorei8>;
-  def ST_BUbitrevbo : StoreBitRevBO<0x01, "st.bu" , truncstorei8>;
-  def ST_Hbitrevbo  : StoreBitRevBO<0x02, "st.h"  , truncstorei16>;
-  def ST_HUbitrevbo : StoreBitRevBO<0x03, "st.hu" , truncstorei16>;
-  def ST_Wbitrevbo  : StoreBitRevBO<0x04, "st.w"  , store>;
-  def ST_Dbitrevbo  : StoreBitRevBO<0x05, "st.d"  , store, ExtRegs>;
-  def ST_Qbitrevbo  : StoreBitRevBO<0x08, "st.q"  , store>;
+ def ST_Dbo : BO<0x89, 0x25, (outs), (ins ExtRegs:$d, bo:$memri),
+   "st.d $memri, $d",
+   [(store ExtRegs:$d, addr:$memri)]>;
 
  def : Pat<(truncstorei32 ExtRegs:$d, addr:$memri),
     (ST_Wbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
@@ -829,43 +618,10 @@ let Predicates = [isnotPointer] in {
 } // let Predicates = [isnotPointer]
 
 
-let Predicates = [isPointer] in {
-  def ST_Abo  : StoreBO<0x26, "st.a"  , store, AddrRegs>;
-  def ST_DAbo : StoreBO<0x27, "st.da" , store, DAddrRegs>;
-  //def ST_DAbo : BO<0x89, 0x27, (outs d_addr:$d),
-         //(ins bo:$memri),
-         //"st.da $memri, $d",
-         //[(store addr:$d, addr:$memri)]>;
-    
-  def ST_Apreincbo  : StorePreIncBO<0x16, "st.a"  , store, AddrRegs>;
-  def ST_DApreincbo : StorePreIncBO<0x17, "st.da" , store, DAddrRegs>;
-  //def ST_DApreincbo : BO<0x89, 0x17, (outs d_addr:$d),
-         //(ins bo:$memri),
-         //"st.da $memri, $d",
-         //[(store addr:$d, addr:$memri)]>;
-
-  def ST_Apostincbo  : StorePostIncBO<0x06, "st.a"  , store, AddrRegs>;
-  def ST_DApostincbo : StorePostIncBO<0x07, "st.da" , store, DAddrRegs>;
-  //def ST_DApostincbo : BO<0x89, 0x07, (outs d_addr:$d),
-         //(ins bo:$memri),
-         //"st.da $memri, $d",
-         //[(store addr:$d, addr:$memri)]>;
-
-  def ST_Acircbo  : StoreCircBO<0x16, "st.a"  , store, AddrRegs>;
-  def ST_DAcircbo : StoreCircBO<0x17, "st.da" , store, DAddrRegs>;
-  //def ST_DAcircbo : BO<0xA9, 0x17, (outs d_addr:$d),
-         //(ins bo:$memri),
-         //"st.da $memri, $d",
-         //[(store addr:$d, addr:$memri)]>;
-
-  def ST_Abitrevbo  : StoreBitRevBO<0x06, "st.a"  , store, AddrRegs>;
-  def ST_DAbitrevbo : StoreBitRevBO<0x07, "st.da" , store, DAddrRegs>;
-  //def ST_DAbitrevbo : BO<0xA9, 0x07, (outs d_addr:$d),
-         //(ins bo:$memri),
-         //"st.da $memri, $d",
-         //[(store addr:$d, addr:$memri)]>;
-} // let Predicates = [isPointer]
-
+let Predicates = [isPointer] in
+  def ST_Abo : BO<0x89, 0x26, (outs), (ins AddrRegs:$d, bo:$memri),
+  "st.a $memri, $d",
+  [(store i32:$d, addr:$memri)]>;
 
 // Shift Instructions
 

@@ -81,18 +81,18 @@ void TriCoreInstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
   }
 }
 
-void TriCoreInstPrinter::printDoubleAddrRegs(const MCInst *MI, unsigned OpNo,
-                                             raw_ostream &O) {
-  const MCOperand &Addr = MI->getOperand(OpNo);
+//void TriCoreInstPrinter::printDoubleAddrRegs(const MCInst *MI, unsigned OpNo,
+                                             //raw_ostream &O) {
+  //const MCOperand &Addr = MI->getOperand(OpNo);
 
-  if (Addr.isReg()) {
-    O << "[";
-    printRegName(O, Addr.getReg());
-    O << "/";
-    printRegName(O, Addr.getReg()+1);
-    O << "]";
-  }
-}
+  //if (Addr.isReg()) {
+    //O << "[";
+    //printRegName(O, Addr.getReg());
+    //O << "/";
+    //printRegName(O, Addr.getReg()+1);
+    //O << "]";
+  //}
+//}
 
 
 //===----------------------------------------------------------------------===//
@@ -160,8 +160,9 @@ void TriCoreInstPrinter::printAddrBO(const MCInst *MI, unsigned OpNum,
         O << " " << Offset.getImm();
       }
       break;
+    }
 }
-
+/*
 // Print a 'preincbo' operand which is an addressing mode
 // Pre-increment Base+Offset
 void TriCoreInstPrinter::printAddrPreIncBO(const MCInst *MI, unsigned OpNum,
@@ -234,7 +235,7 @@ void TriCoreInstPrinter::printAddrBitRevBO(const MCInst *MI, unsigned OpNum,
   if (Base.isReg())
       O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "/%" << StringRef(getRegisterName(Base.getReg()+1)).lower() << "+r]";
 }
-
+*/
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
 
