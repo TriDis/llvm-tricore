@@ -162,7 +162,7 @@ void TriCoreInstPrinter::printAddrBO(const MCInst *MI, unsigned OpNum,
       break;
     }
 }
-/*
+
 // Print a 'preincbo' operand which is an addressing mode
 // Pre-increment Base+Offset
 void TriCoreInstPrinter::printAddrPreIncBO(const MCInst *MI, unsigned OpNum,
@@ -202,7 +202,7 @@ void TriCoreInstPrinter::printAddrPostIncBO(const MCInst *MI, unsigned OpNum,
     O << " " << Offset.getImm();
   }
 }
-
+/*
 // Print a 'circbo' operand which is an addressing mode
 // Circular Base+Offset
 void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,

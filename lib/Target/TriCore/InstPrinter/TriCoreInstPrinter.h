@@ -47,8 +47,8 @@ private:
   void printPCRelImmOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   //void printDoubleAddrRegs(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   void printAddrBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
-  //void printAddrPreIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
-  //void printAddrPostIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPreIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPostIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
   //void printAddrCircBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
   //void printAddrBitRevBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
 
