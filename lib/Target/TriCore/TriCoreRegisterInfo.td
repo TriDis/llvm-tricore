@@ -149,8 +149,12 @@ def ExtRegs : RegisterClass<"TriCore", [i64], 64, (add
 
 def PSRegs : RegisterClass<"TriCore", [i32], 32, (add
     PSW, PCXI, PC, FCX)>;
-    
-//def PairAddrRegs : RegisterClass<"TriCore", [i64], 64, (add
-    //P2, P4,
-    //P6, P8, P10,
-    //P12, P14, P0)>;
+
+def TuplesPairAddrRegs : RegisterTuples<[subreg_even, subreg_odd],
+                                        [(add A0,A2,A4,A6,A8,A10,A12,A14),
+                                        (add A1,A3,A5,A7,A9,A11,A13,A15)]>;
+
+def PairAddrRegs : RegisterClass<"TriCore", [i64], 64,
+                                (add TuplesPairAddrRegs)> {
+    let Size = 64;
+}

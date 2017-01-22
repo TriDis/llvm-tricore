@@ -17,6 +17,7 @@
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCInstrInfo.h"
+#include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -26,6 +27,10 @@ using namespace llvm;
 #define DEBUG_TYPE "asm-printer"
 
 #include "TriCoreGenAsmWriter.inc"
+
+TriCoreInstPrinter::TriCoreInstPrinter(const MCAsmInfo &MAI, const MCInstrInfo &MII,
+                               const MCRegisterInfo &MRI)
+    : MCInstPrinter(MAI, MII, MRI) {}
 
 void TriCoreInstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
   OS << "%" << StringRef(getRegisterName(RegNo)).lower();
@@ -81,18 +86,16 @@ void TriCoreInstPrinter::printPCRelImmOperand(const MCInst *MI, unsigned OpNo,
   }
 }
 
-//void TriCoreInstPrinter::printDoubleAddrRegs(const MCInst *MI, unsigned OpNo,
-                                             //raw_ostream &O) {
-  //const MCOperand &Addr = MI->getOperand(OpNo);
+void TriCoreInstPrinter::printPairAddrRegsOperand(const MCInst *MI, unsigned OpNo,
+                                             raw_ostream &O) {
+  unsigned AddrReg = MI->getOperand(OpNo).getReg();
 
-  //if (Addr.isReg()) {
-    //O << "[";
-    //printRegName(O, Addr.getReg());
-    //O << "/";
-    //printRegName(O, Addr.getReg()+1);
-    //O << "]";
-  //}
-//}
+  O << "[%";
+  printRegName(O, MRI.getSubReg(AddrReg, TriCore::subreg_even));
+  O << "/%";
+  printRegName(O, MRI.getSubReg(AddrReg, TriCore::subreg_odd));
+  O << "]";
+}
 
 
 //===----------------------------------------------------------------------===//
