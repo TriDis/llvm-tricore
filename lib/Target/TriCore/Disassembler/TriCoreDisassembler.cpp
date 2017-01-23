@@ -87,6 +87,11 @@ static DecodeStatus DecodeExtRegsRegisterClass(MCInst &Inst,
                                              unsigned RegNo,
                                              uint64_t Address,
                                              const void *Decoder);
+                                             
+static DecodeStatus DecodePairAddrRegsRegisterClass(MCInst &Inst,
+                                             unsigned RegNo,
+                                             uint64_t Address,
+                                             const void *Decoder);
 
 static DecodeStatus DecodeSBInstruction(MCInst &Inst,
                                                unsigned Insn,
@@ -318,6 +323,18 @@ static DecodeStatus DecodeExtRegsRegisterClass(MCInst &Inst,
   if (RegNo > 15)
     return MCDisassembler::Fail;
   unsigned Reg = getReg(Decoder, TriCore::ExtRegsRegClassID, RegNo);
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodePairAddrRegsRegisterClass(MCInst &Inst,
+                                             unsigned RegNo,
+                                             uint64_t Address,
+                                             const void *Decoder)
+{
+  if (RegNo > 15)
+    return MCDisassembler::Fail;
+  unsigned Reg = getReg(Decoder,TriCore::PairAddrRegsRegClassID,RegNo);
   Inst.addOperand(MCOperand::createReg(Reg));
   return MCDisassembler::Success;
 }
@@ -802,12 +819,35 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   // Decode s1_d.
   switch (Inst.getOpcode()) {
+    case TriCore::LD_Aabs:
+    case TriCore::LD_Abo:
+    case TriCore::LD_Apreincbo:
+    case TriCore::LD_Apostincbo:
+    case TriCore::ST_Aabs:
     case TriCore::ST_Abo:
+    case TriCore::ST_Apreincbo:
+    case TriCore::ST_Apostincbo:
       status = DecodeAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
+    case TriCore::LD_Dabs:
     case TriCore::LD_Dbo:
+    case TriCore::LD_Dpreincbo:
+    case TriCore::LD_Dpostincbo:
+    case TriCore::ST_Dabs:
     case TriCore::ST_Dbo:
+    case TriCore::ST_Dpreincbo:
+    case TriCore::ST_Dpostincbo:
       status = DecodeExtRegsRegisterClass(Inst, s1_d, Address, Decoder);
+      break;
+    case TriCore::LD_DAabs:
+    case TriCore::LD_DAbo:
+    case TriCore::LD_DApreincbo:
+    case TriCore::LD_DApostincbo:
+    case TriCore::ST_DAabs:
+    case TriCore::ST_DAbo:
+    case TriCore::ST_DApreincbo:
+    case TriCore::ST_DApostincbo:
+      status = DecodePairAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     default:
       status = DecodeDataRegsRegisterClass(Inst, s1_d, Address, Decoder);
@@ -844,11 +884,19 @@ DecodeBOLInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
 
   if(!is32Bit) // This instruction is 32-bit
     return MCDisassembler::Fail;
-
+  
   // Decode s1_d.
-  status = DecodeDataRegsRegisterClass(Inst, s1_d, Address, Decoder);
+  switch (Inst.getOpcode()) {
+    case TriCore::LD_Abol:
+      status = DecodeAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
+      break;
+    default:
+      status = DecodeDataRegsRegisterClass(Inst, s1_d, Address, Decoder);
+      break;
+  }
   if (status != MCDisassembler::Success)
     return status;
+  
 
   // Decode s2.
   status = DecodeAddrRegsRegisterClass(Inst, s2, Address, Decoder);

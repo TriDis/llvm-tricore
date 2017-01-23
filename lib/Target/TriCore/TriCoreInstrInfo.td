@@ -186,6 +186,7 @@ def cc_val     : Operand<i32> { let PrintMethod = "printCondCode";  }
 
 def PairAddrRegsOp : RegisterOperand<PairAddrRegs, "printPairAddrRegsOperand">;
 
+
 def bo : Operand<i32> {
   let MIOperandInfo = (ops AddrRegs, i32imm);
   let PrintMethod = "printAddrBO";
@@ -674,8 +675,8 @@ def LD_Wpostincbo  : LoadPostIncBO<0x04, "ld.w"  , load>;
 def LD_Dpostincbo  : LoadPostIncBO<0x05, "ld.d"  , load, ExtRegs, i64>;
 def LD_Apostincbo  : LoadPostIncBO<0x06, "ld.a"  , load, AddrRegs>;
 //def LD_DApostincbo : LoadPostIncBO<0x07, "ld.da" , load, DAddrRegs, i64>;
-def LD_DApostincbo : BO<0x09, 0x17, (outs PairAddrRegsOp:$d),
-         (ins preincbo:$memri),
+def LD_DApostincbo : BO<0x09, 0x07, (outs PairAddrRegsOp:$d),
+         (ins postincbo:$memri),
          "ld.da $d, $memri",
          [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
 def LD_Qpostincbo  : LoadPostIncBO<0x08, "ld.q"  , load>;

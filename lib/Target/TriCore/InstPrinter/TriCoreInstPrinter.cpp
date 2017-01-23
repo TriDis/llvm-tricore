@@ -38,6 +38,65 @@ void TriCoreInstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
 
 void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
                                StringRef Annot, const MCSubtargetInfo &STI) {
+
+  unsigned Opcode = MI->getOpcode();
+
+  switch (Opcode) {
+    // Combine 2 AddrRegs from disassember into a PairAddrRegs to match
+    // with instr def. load/store require even/odd AddrReg pair. To enforce
+    // this constraint, a single PairAddrRegs reg operand is used in the .td
+    // file to replace the two AddrRegs. However, when decoding them, the two
+    // AddrRegs cannot be automatically expressed as a PairAddrRegs, so we
+    // have to manually merge them.
+    // FIXME: We would really like to be able to tablegen'erate this.
+    case TriCore::LD_DAabs:
+    case TriCore::LD_DAbo:
+    case TriCore::LD_DApreincbo:
+    case TriCore::LD_DApostincbo: {
+      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);    
+      unsigned Reg = MI->getOperand(0).getReg();
+      if (MRC.contains(Reg)) {
+        MCInst NewMI;
+        MCOperand NewReg;
+        NewMI.setOpcode(Opcode);
+
+        NewReg = MCOperand::createReg(MRI.getMatchingSuperReg(
+            Reg, TriCore::subreg_even, &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
+        NewMI.addOperand(NewReg);
+
+        // Copy the rest operands into NewMI.
+        for (unsigned i = 2; i < MI->getNumOperands(); ++i)
+          NewMI.addOperand(MI->getOperand(i));
+        printInstruction(&NewMI, O);
+        return;
+      }
+      break;
+    }
+    case TriCore::ST_DAabs:
+    case TriCore::ST_DAbo:
+    case TriCore::ST_DApreincbo:
+    case TriCore::ST_DApostincbo: {
+      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);    
+      unsigned Reg = MI->getOperand(1).getReg();
+      if (MRC.contains(Reg)) {
+        MCInst NewMI;
+        MCOperand NewReg;
+        NewMI.setOpcode(Opcode);
+        NewMI.addOperand(MI->getOperand(0));
+        NewReg = MCOperand::createReg(MRI.getMatchingSuperReg(
+            Reg, TriCore::subreg_even, &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
+        NewMI.addOperand(NewReg);
+
+        // Copy the rest operands into NewMI.
+        for (unsigned i = 3; i < MI->getNumOperands(); ++i)
+          NewMI.addOperand(MI->getOperand(i));
+        printInstruction(&NewMI, O);
+        return;
+      }
+      break;
+    }
+  }
+
   printInstruction(MI, O);
   printAnnotation(O, Annot);
 }
