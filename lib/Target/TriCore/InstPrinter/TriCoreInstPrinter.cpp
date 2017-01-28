@@ -185,20 +185,6 @@ void TriCoreInstPrinter::printZExtImm(const MCInst *MI, int OpNo,
     printOperand(MI, OpNo, O);
 }
 
-// Print a 'abs' operand which is an addressing mode
-// Absolute
-//void TriCoreInstPrinter::printAddrABS(const MCInst *MI, unsigned OpNum,
-                                         //raw_ostream &O) {
-
-  //const MCOperand &Op = MI->getOperand(OpNo);
-  //if (Op.isImm())
-    //O << Op.getImm();
-  //else {
-    //assert(Op.isExpr() && "unknown absolute address");
-    //Op.getExpr()->print(O, &MAI);
-  //}
-//}
-
 // Print a 'bo' operand which is an addressing mode
 // Base+Offset
 void TriCoreInstPrinter::printAddrBO(const MCInst *MI, unsigned OpNum,
