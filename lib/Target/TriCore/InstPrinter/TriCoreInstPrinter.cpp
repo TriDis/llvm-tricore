@@ -52,8 +52,14 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::LD_DAabs:
     case TriCore::LD_DAbo:
     case TriCore::LD_DApreincbo:
-    case TriCore::LD_DApostincbo: {
-      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);    
+    case TriCore::LD_DApostincbo:
+    case TriCore::ST_Bcircbo:
+    case TriCore::ST_Hcircbo:
+    case TriCore::ST_Wcircbo:
+    case TriCore::ST_Dcircbo:
+    case TriCore::ST_Qcircbo:
+    case TriCore::ST_Acircbo: {
+      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg = MI->getOperand(0).getReg();
       if (MRC.contains(Reg)) {
         MCInst NewMI;
@@ -61,7 +67,8 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         NewMI.setOpcode(Opcode);
 
         NewReg = MCOperand::createReg(MRI.getMatchingSuperReg(
-            Reg, TriCore::subreg_even, &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
+            Reg, TriCore::subreg_even,
+            &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
         NewMI.addOperand(NewReg);
 
         // Copy the rest operands into NewMI.
@@ -75,20 +82,54 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::ST_DAabs:
     case TriCore::ST_DAbo:
     case TriCore::ST_DApreincbo:
-    case TriCore::ST_DApostincbo: {
-      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);    
-      unsigned Reg = MI->getOperand(1).getReg();
+    case TriCore::ST_DApostincbo:
+    case TriCore::LD_Bcircbo:
+    case TriCore::LD_BUcircbo:
+    case TriCore::LD_Hcircbo:
+    case TriCore::LD_HUcircbo:
+    case TriCore::LD_Wcircbo:
+    case TriCore::LD_Dcircbo:
+    case TriCore::LD_Acircbo: {
+      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
+      unsigned Reg = MI->getOperand(1).getReg();      
       if (MRC.contains(Reg)) {
         MCInst NewMI;
         MCOperand NewReg;
         NewMI.setOpcode(Opcode);
+        
         NewMI.addOperand(MI->getOperand(0));
         NewReg = MCOperand::createReg(MRI.getMatchingSuperReg(
-            Reg, TriCore::subreg_even, &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
+            Reg, TriCore::subreg_even,
+            &MRI.getRegClass(TriCore::PairAddrRegsRegClassID)));
         NewMI.addOperand(NewReg);
 
         // Copy the rest operands into NewMI.
         for (unsigned i = 3; i < MI->getNumOperands(); ++i)
+          NewMI.addOperand(MI->getOperand(i));
+        printInstruction(&NewMI, O);
+        return;
+      }
+      break;
+    }    
+    case TriCore::LD_DAcircbo:
+    case TriCore::ST_DAcircbo: {
+      const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
+      unsigned Reg1 = MI->getOperand(0).getReg();
+      unsigned Reg2 = MI->getOperand(2).getReg();
+      if (MRC.contains(Reg2)) {
+        MCInst NewMI;
+        NewMI.setOpcode(Opcode);
+        
+        NewMI.addOperand(MCOperand::createReg(MRI.getMatchingSuperReg(
+          Reg1, TriCore::subreg_even,
+          &MRI.getRegClass(TriCore::PairAddrRegsRegClassID))));
+       
+        NewMI.addOperand(MCOperand::createReg(MRI.getMatchingSuperReg(
+          Reg2, TriCore::subreg_even,
+          &MRI.getRegClass(TriCore::PairAddrRegsRegClassID))));
+
+        // Copy the rest operands into NewMI.
+        for (unsigned i = 4; i < MI->getNumOperands(); ++i)
           NewMI.addOperand(MI->getOperand(i));
         printInstruction(&NewMI, O);
         return;
@@ -149,9 +190,9 @@ void TriCoreInstPrinter::printPairAddrRegsOperand(const MCInst *MI, unsigned OpN
                                              raw_ostream &O) {
   unsigned AddrReg = MI->getOperand(OpNo).getReg();
 
-  O << "[%";
+  O << "[";
   printRegName(O, MRI.getSubReg(AddrReg, TriCore::subreg_even));
-  O << "/%";
+  O << "/";
   printRegName(O, MRI.getSubReg(AddrReg, TriCore::subreg_odd));
   O << "]";
 }
@@ -250,7 +291,7 @@ void TriCoreInstPrinter::printAddrPostIncBO(const MCInst *MI, unsigned OpNum,
     O << " " << Offset.getImm();
   }
 }
-/*
+
 // Print a 'circbo' operand which is an addressing mode
 // Circular Base+Offset
 void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,
@@ -260,9 +301,13 @@ void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,
   const MCOperand &Offset = MI->getOperand(OpNum+1);
 
   // Print register base field
-  if (Base.isReg())
-      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "/%" << StringRef(getRegisterName(Base.getReg()+1)).lower() << "+c]";
-
+  if (Base.isReg()) {
+      O << "[";
+      printRegName(O, MRI.getSubReg(Base.getReg(), TriCore::subreg_even));
+      O << "/";
+      printRegName(O, MRI.getSubReg(Base.getReg(), TriCore::subreg_odd));
+      O << "+c]";
+  }
   if (Offset.isExpr())
     Offset.getExpr()->print(O, &MAI);
   else {
@@ -270,18 +315,22 @@ void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,
     O << " " << Offset.getImm();
   }
 }
-
+/*
 // Print a 'bitrevbo' operand which is an addressing mode
 // Bit-Reverse Base+Offset
 void TriCoreInstPrinter::printAddrBitRevBO(const MCInst *MI, unsigned OpNum,
                                          raw_ostream &O) {
 
   const MCOperand &Base = MI->getOperand(OpNum);
-  const MCOperand &Offset = MI->getOperand(OpNum+1);
 
   // Print register base field
-  if (Base.isReg())
-      O << "[%" << StringRef(getRegisterName(Base.getReg())).lower() << "/%" << StringRef(getRegisterName(Base.getReg()+1)).lower() << "+r]";
+  if (Base.isReg()) {
+      O << "[";
+      printRegName(O, MRI.getSubReg(Base.getReg(), TriCore::subreg_even));
+      O << "/";
+      printRegName(O, MRI.getSubReg(Base.getReg(), TriCore::subreg_odd));
+      O << "+r]";
+  }
 }
 */
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,

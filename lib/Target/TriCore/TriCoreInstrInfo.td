@@ -204,15 +204,15 @@ def postincbo : Operand<i32> {
   let PrintMethod = "printAddrPostIncBO";
   let EncoderMethod = "getBaseOffsetValue";
 }
-/*
-def circbo : Operand<i32> {
-  let MIOperandInfo = (ops PairAddrRegs, i32imm);
-  let PrintMethod = "printAddrCircBO";
-  //let EncoderMethod = "getBaseOffsetValue";
-}
 
+def circbo : Operand<i32> {
+  let MIOperandInfo = (ops PairAddrRegsOp, i32imm);
+  let PrintMethod = "printAddrCircBO";
+  let EncoderMethod = "getBaseOffsetValue";
+}
+/*
 def bitrevbo : Operand<i32> {
-  let MIOperandInfo = (ops AddrRegs);
+  let MIOperandInfo = (ops PairAddrRegsOp);
   let PrintMethod = "printAddrBitRevBO";
   //let EncoderMethod = "getBaseOffsetValue";
 }
@@ -613,7 +613,6 @@ def LD_HUabs : LoadABS<0x05, 0x03, "ld.hu" , zextloadi16>;
 def LD_Wabs  : LoadABS<0x85, 0x00, "ld.w"  , load>;
 def LD_Dabs  : LoadABS<0x85, 0x01, "ld.d"  , load, ExtRegs,i64>;
 def LD_Aabs  : LoadABS<0x85, 0x02, "ld.a"  , load, AddrRegs>;
-//def LD_DAabs : LoadABS<0x85, 0x03, "ld.da" , load, PairAddrRegsOp, i64>;
 def LD_DAabs : ABS<0x85, 0x03, (outs PairAddrRegsOp:$d),
          (ins i32imm:$memri), "ld.da $d, $memri",
          [(set PairAddrRegsOp:$d, (i64 (load imm:$memri)))]>{ let mayLoad = 1; }
@@ -633,7 +632,6 @@ def LD_HUbo : LoadBO<0x23, "ld.hu" , zextloadi16>;
 def LD_Wbo  : LoadBO<0x24, "ld.w"  , load>;
 def LD_Dbo  : LoadBO<0x25, "ld.d"  , load, ExtRegs, i64>;
 def LD_Abo  : LoadBO<0x26, "ld.a"  , load, AddrRegs>;
-//def LD_DAbo : LoadBO<0x27, "ld.da" , load, PairAddrRegsOp, i64>;
 def LD_DAbo : BO<0x09, 0x27, (outs PairAddrRegsOp:$d),
          (ins bo:$memri), "ld.da $d, $memri",
          [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
@@ -653,7 +651,6 @@ def LD_HUpreincbo : LoadPreIncBO<0x13, "ld.hu" , zextloadi16>;
 def LD_Wpreincbo  : LoadPreIncBO<0x14, "ld.w"  , load>;
 def LD_Dpreincbo  : LoadPreIncBO<0x15, "ld.d"  , load, ExtRegs, i64>;
 def LD_Apreincbo  : LoadPreIncBO<0x16, "ld.a"  , load, AddrRegs>;
-//def LD_DApreincbo : LoadPreIncBO<0x17, "ld.da" , load, DAddrRegs, i64>;
 def LD_DApreincbo : BO<0x09, 0x17, (outs PairAddrRegsOp:$d),
          (ins preincbo:$memri),
          "ld.da $d, $memri",
@@ -674,13 +671,12 @@ def LD_HUpostincbo : LoadPostIncBO<0x03, "ld.hu" , zextloadi16>;
 def LD_Wpostincbo  : LoadPostIncBO<0x04, "ld.w"  , load>;
 def LD_Dpostincbo  : LoadPostIncBO<0x05, "ld.d"  , load, ExtRegs, i64>;
 def LD_Apostincbo  : LoadPostIncBO<0x06, "ld.a"  , load, AddrRegs>;
-//def LD_DApostincbo : LoadPostIncBO<0x07, "ld.da" , load, DAddrRegs, i64>;
 def LD_DApostincbo : BO<0x09, 0x07, (outs PairAddrRegsOp:$d),
          (ins postincbo:$memri),
          "ld.da $d, $memri",
          [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
 def LD_Qpostincbo  : LoadPostIncBO<0x08, "ld.q"  , load>;
-/*
+
 class LoadCircBO<bits<6> op2, string opstr, PatFrag PF,
          RegisterClass RC = DataRegs, ValueType intType = i32>
         : BO<0x29, op2, (outs RC:$d),
@@ -695,13 +691,12 @@ def LD_HUcircbo : LoadCircBO<0x13, "ld.hu" , zextloadi16>;
 def LD_Wcircbo  : LoadCircBO<0x14, "ld.w"  , load>;
 def LD_Dcircbo  : LoadCircBO<0x15, "ld.d"  , load, ExtRegs, i64>;
 def LD_Acircbo  : LoadCircBO<0x16, "ld.a"  , load, AddrRegs>;
-//def LD_DAcircbo : LoadCircBO<0x17, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAcircbo : BO<0x29, 0x17, (outs d_addr:$d),
-         //(ins circbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
+def LD_DAcircbo : BO<0x29, 0x17, (outs PairAddrRegsOp:$d),
+         (ins circbo:$memri),
+         "ld.da $d, $memri",
+         [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
 def LD_Qcircbo  : LoadCircBO<0x18, "ld.q"  , load>;
-
+/*
 class LoadBitRevBO<bits<6> op2, string opstr, PatFrag PF,
          RegisterClass RC = DataRegs, ValueType intType = i32>
         : BO<0x29, op2, (outs RC:$d),
@@ -731,52 +726,9 @@ def LD_Abol : BOL<0x99, (outs AddrRegs:$d),
    (ins bo:$memri),
    "ld.a $d, $memri",
    [(set AddrRegs:$d, (load addr:$memri))]>{ let mayLoad = 1; }
-   
+
 def : Pat<(extloadi8 addr:$src), (LD_Bbo addr:$src)>;
 def : Pat<(extloadi16 addr:$src), (LD_Hbo addr:$src)>;
-/*
-class StoreABS<bits<8> op1, bits<2> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : ABS<op1, op2, (outs),
-         (ins RC:$d, i32imm:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, imm:$memri)]>;
-
-class StoreBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins bo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StorePreIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins preincbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StorePostIncBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0x89, op2, (outs RC:$d),
-         (ins postincbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StoreCircBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0xA9, op2, (outs RC:$d),
-         (ins circbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-
-class StoreBitRevBO<bits<6> op2, string opstr, PatFrag PF,
-         RegisterClass RC = DataRegs>
-        : BO<0xA9, op2, (outs RC:$d),
-         (ins bitrevbo:$memri),
-         !strconcat(opstr, " $memri, $d"),
-         [(PF RC:$d, addr:$memri)]>;
-*/
 
 let Predicates = [isnotPointer] in {
  def ST_Babs : ABS<0x25, 0x00,(outs), (ins DataRegs:$d, i32imm:$memri),
@@ -810,7 +762,7 @@ let Predicates = [isnotPointer] in {
  def ST_Qbo : BO<0x89, 0x28, (outs), (ins DataRegs:$d, bo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-   
+
  def ST_Bpreincbo : BO<0x89, 0x10,(outs), (ins DataRegs:$d, preincbo:$memri),
    "st.b $memri, $d",
    [(truncstorei8 DataRegs:$d, addr:$memri)]>;
@@ -826,7 +778,7 @@ let Predicates = [isnotPointer] in {
  def ST_Qpreincbo : BO<0x89, 0x18, (outs), (ins DataRegs:$d, preincbo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-   
+
  def ST_Bpostincbo : BO<0x89, 0x00,(outs), (ins DataRegs:$d, postincbo:$memri),
    "st.b $memri, $d",
    [(truncstorei8 DataRegs:$d, addr:$memri)]>;
@@ -842,7 +794,23 @@ let Predicates = [isnotPointer] in {
  def ST_Qpostincbo : BO<0x89, 0x08, (outs), (ins DataRegs:$d, postincbo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-   
+
+ def ST_Bcircbo : BO<0xA9, 0x10,(outs), (ins DataRegs:$d, circbo:$memri),
+   "st.b $memri, $d",
+   [(truncstorei8 DataRegs:$d, addr:$memri)]>;
+ def ST_Hcircbo : BO<0xA9, 0x12,(outs), (ins DataRegs:$d, circbo:$memri),
+   "st.h $memri, $d",
+   [(truncstorei16 DataRegs:$d, addr:$memri)]>;
+ def ST_Wcircbo : BO<0xA9, 0x14, (outs), (ins DataRegs:$d, circbo:$memri),
+   "st.w $memri, $d",
+   [(store DataRegs:$d, addr:$memri)]>;
+ def ST_Dcircbo : BO<0xA9, 0x15, (outs), (ins ExtRegs:$d, circbo:$memri),
+   "st.d $memri, $d",
+   [(store ExtRegs:$d, addr:$memri)]>;
+ def ST_Qcircbo : BO<0xA9, 0x18, (outs), (ins DataRegs:$d, circbo:$memri),
+   "st.q $memri, $d",
+   [(store DataRegs:$d, addr:$memri)]>;
+
  def : Pat<(truncstorei32 ExtRegs:$d, addr:$memri),
     (ST_Wbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
 
@@ -856,19 +824,19 @@ let Predicates = [isPointer] in {
   def ST_Aabs : ABS<0xA5, 0x02,(outs), (ins AddrRegs:$d, i32imm:$memri),
    "st.a $memri, $d",
    [(truncstorei8 i32:$d, imm:$memri)]>;
-   
+
   def ST_DAabs : ABS<0xA5, 0x03,(outs), (ins PairAddrRegsOp:$d, i32imm:$memri),
    "st.da $memri, $d",
    [(truncstorei8 i64:$d, imm:$memri)]>;
-  
+
   def ST_Abo : BO<0x89, 0x26, (outs), (ins AddrRegs:$d, bo:$memri),
   "st.a $memri, $d",
   [(store i32:$d, addr:$memri)]>;
-  
+
   def ST_DAbo : BO<0x89, 0x27, (outs), (ins PairAddrRegsOp:$d, bo:$memri),
   "st.da $memri, $d",
   [(store i64:$d, addr:$memri)]>;
-  
+
   def ST_Apreincbo : BO<0x89, 0x16,(outs), (ins AddrRegs:$d, preincbo:$memri),
    "st.a $memri, $d",
    [(store i32:$d, addr:$memri)]>;
@@ -876,12 +844,20 @@ let Predicates = [isPointer] in {
   def ST_DApreincbo : BO<0x89, 0x17,(outs), (ins PairAddrRegsOp:$d, preincbo:$memri),
    "st.da $memri, $d",
    [(store i64:$d, addr:$memri)]>;
-   
+
    def ST_Apostincbo : BO<0x89, 0x06,(outs), (ins AddrRegs:$d, postincbo:$memri),
    "st.a $memri, $d",
    [(store i32:$d, addr:$memri)]>;
-   
+
    def ST_DApostincbo : BO<0x89, 0x07,(outs), (ins PairAddrRegsOp:$d, postincbo:$memri),
+   "st.da $memri, $d",
+   [(store i64:$d, addr:$memri)]>;
+   
+   def ST_Acircbo : BO<0xA9, 0x16,(outs), (ins AddrRegs:$d, circbo:$memri),
+   "st.a $memri, $d",
+   [(store i32:$d, addr:$memri)]>;
+
+   def ST_DAcircbo : BO<0xA9, 0x17,(outs), (ins PairAddrRegsOp:$d, circbo:$memri),
    "st.da $memri, $d",
    [(store i64:$d, addr:$memri)]>;
 } // let Predicates = [isPointer]

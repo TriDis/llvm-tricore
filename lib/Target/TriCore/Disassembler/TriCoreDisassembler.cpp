@@ -857,9 +857,11 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::LD_DAbo:
     case TriCore::LD_DApreincbo:
     case TriCore::LD_DApostincbo:
+    case TriCore::LD_DAcircbo:
     case TriCore::ST_DAbo:
     case TriCore::ST_DApreincbo:
     case TriCore::ST_DApostincbo:
+    case TriCore::ST_DAcircbo:
       status = DecodePairAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     default:
@@ -870,7 +872,28 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     return status;
 
   // Decode s2.
-  status = DecodeAddrRegsRegisterClass(Inst, s2, Address, Decoder);
+  switch (Inst.getOpcode()) {
+    case TriCore::LD_Bcircbo:
+    case TriCore::LD_BUcircbo:
+    case TriCore::LD_Hcircbo:
+    case TriCore::LD_HUcircbo:
+    case TriCore::LD_Wcircbo:
+    case TriCore::LD_Dcircbo:
+    case TriCore::LD_Acircbo:
+    case TriCore::LD_DAcircbo:
+    case TriCore::ST_Bcircbo:
+    case TriCore::ST_Hcircbo:
+    case TriCore::ST_Wcircbo:
+    case TriCore::ST_Dcircbo:
+    case TriCore::ST_Qcircbo:
+    case TriCore::ST_Acircbo:
+    case TriCore::ST_DAcircbo:
+      status = DecodePairAddrRegsRegisterClass(Inst, s2, Address, Decoder);
+      break;
+    default:
+      status = DecodeAddrRegsRegisterClass(Inst, s2, Address, Decoder);
+      break;
+  }
   if (status != MCDisassembler::Success)
     return status;
 
