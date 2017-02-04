@@ -809,7 +809,7 @@ let Predicates = [isnotPointer] in {
  def ST_Qcircbo : BO<0xA9, 0x18, (outs), (ins DataRegs:$d, circbo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-  /* 
+
  def ST_Bbitrevbo : BO<0xA9, 0x00,(outs), (ins DataRegs:$d, bitrevbo:$memri),
    "st.b $memri, $d",
    [(truncstorei8 DataRegs:$d, addr:$memri)]>;
@@ -825,7 +825,7 @@ let Predicates = [isnotPointer] in {
  def ST_Qbitrevbo : BO<0xA9, 0x08, (outs), (ins DataRegs:$d, bitrevbo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-*/
+
  def : Pat<(truncstorei32 ExtRegs:$d, addr:$memri),
     (ST_Wbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
 
@@ -875,15 +875,15 @@ let Predicates = [isPointer] in {
    def ST_DAcircbo : BO<0xA9, 0x17,(outs), (ins PairAddrRegsOp:$d, circbo:$memri),
    "st.da $memri, $d",
    [(store i64:$d, addr:$memri)]>;
-   /*
+
    def ST_Abitrevbo : BO<0xA9, 0x06,(outs), (ins AddrRegs:$d, bitrevbo:$memri),
    "st.a $memri, $d",
-   [(store i32:$d, bitrevbo:$memri)]>;
+   [(store i32:$d, addr:$memri)]>;
 
    def ST_DAbitrevbo : BO<0xA9, 0x07,(outs), (ins PairAddrRegsOp:$d, bitrevbo:$memri),
    "st.da $memri, $d",
-   [(store i64:$d, bitrevbo:$memri)]>;
-   * */
+   [(store i64:$d, addr:$memri)]>;
+
 } // let Predicates = [isPointer]
 
 // Shift Instructions

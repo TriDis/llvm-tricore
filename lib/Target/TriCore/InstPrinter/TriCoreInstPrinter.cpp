@@ -59,13 +59,12 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::ST_Dcircbo:
     case TriCore::ST_Qcircbo:
     case TriCore::ST_Acircbo:
-    /*
     case TriCore::ST_Bbitrevbo:
     case TriCore::ST_Hbitrevbo:
     case TriCore::ST_Wbitrevbo:
     case TriCore::ST_Dbitrevbo:
     case TriCore::ST_Qbitrevbo:
-    case TriCore::ST_Abitrevbo:*/ {
+    case TriCore::ST_Abitrevbo: {
       const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg = MI->getOperand(0).getReg();
       if (MRC.contains(Reg)) {
@@ -90,7 +89,6 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::ST_DAbo:
     case TriCore::ST_DApreincbo:
     case TriCore::ST_DApostincbo:
-    //case TriCore::ST_DAbitrevbo:
     case TriCore::LD_Bcircbo:
     case TriCore::LD_BUcircbo:
     case TriCore::LD_Hcircbo:
@@ -128,8 +126,8 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     }    
     case TriCore::LD_DAcircbo:
     case TriCore::ST_DAcircbo:
-    case TriCore::LD_DAbitrevbo: {
-    //case TriCore::ST_DAbitrevbo: {
+    case TriCore::LD_DAbitrevbo:
+    case TriCore::ST_DAbitrevbo: {
       const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg1 = MI->getOperand(0).getReg();
       unsigned Reg2 = MI->getOperand(2).getReg();

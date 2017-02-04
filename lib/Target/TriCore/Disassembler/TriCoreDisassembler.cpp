@@ -847,7 +847,7 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::ST_Apreincbo:
     case TriCore::ST_Apostincbo:
     case TriCore::ST_Acircbo:
-    //case TriCore::ST_Abitrevbo:
+    case TriCore::ST_Abitrevbo:
       status = DecodeAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     case TriCore::LD_Dbo:
@@ -859,7 +859,7 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::ST_Dpreincbo:
     case TriCore::ST_Dpostincbo:
     case TriCore::ST_Dcircbo:
-    //case TriCore::ST_Dbitrevbo:
+    case TriCore::ST_Dbitrevbo:
       status = DecodeExtRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     case TriCore::LD_DAbo:
@@ -871,7 +871,7 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::ST_DApreincbo:
     case TriCore::ST_DApostincbo:
     case TriCore::ST_DAcircbo:    
-    //case TriCore::ST_DAbitrevbo:
+    case TriCore::ST_DAbitrevbo:
       status = DecodePairAddrRegsRegisterClass(Inst, s1_d, Address, Decoder);
       break;
     default:
@@ -906,13 +906,13 @@ DecodeBOInstruction(MCInst &Inst, unsigned Insn, uint64_t Address,
     case TriCore::LD_Dbitrevbo:
     case TriCore::LD_Abitrevbo:
     case TriCore::LD_DAbitrevbo:
-    //case TriCore::ST_Bbitrevbo:
-    //case TriCore::ST_Hbitrevbo:
-    //case TriCore::ST_Wbitrevbo:
-    //case TriCore::ST_Dbitrevbo:
-    //case TriCore::ST_Qbitrevbo:
-    //case TriCore::ST_Abitrevbo:
-    //case TriCore::ST_DAbitrevbo:
+    case TriCore::ST_Bbitrevbo:
+    case TriCore::ST_Hbitrevbo:
+    case TriCore::ST_Wbitrevbo:
+    case TriCore::ST_Dbitrevbo:
+    case TriCore::ST_Qbitrevbo:
+    case TriCore::ST_Abitrevbo:
+    case TriCore::ST_DAbitrevbo:
       status = DecodePairAddrRegsRegisterClass(Inst, s2, Address, Decoder);
       break;
     default:
