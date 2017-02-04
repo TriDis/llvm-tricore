@@ -58,7 +58,14 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::ST_Wcircbo:
     case TriCore::ST_Dcircbo:
     case TriCore::ST_Qcircbo:
-    case TriCore::ST_Acircbo: {
+    case TriCore::ST_Acircbo:
+    /*
+    case TriCore::ST_Bbitrevbo:
+    case TriCore::ST_Hbitrevbo:
+    case TriCore::ST_Wbitrevbo:
+    case TriCore::ST_Dbitrevbo:
+    case TriCore::ST_Qbitrevbo:
+    case TriCore::ST_Abitrevbo:*/ {
       const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg = MI->getOperand(0).getReg();
       if (MRC.contains(Reg)) {
@@ -83,13 +90,21 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     case TriCore::ST_DAbo:
     case TriCore::ST_DApreincbo:
     case TriCore::ST_DApostincbo:
+    //case TriCore::ST_DAbitrevbo:
     case TriCore::LD_Bcircbo:
     case TriCore::LD_BUcircbo:
     case TriCore::LD_Hcircbo:
     case TriCore::LD_HUcircbo:
     case TriCore::LD_Wcircbo:
     case TriCore::LD_Dcircbo:
-    case TriCore::LD_Acircbo: {
+    case TriCore::LD_Acircbo:
+    case TriCore::LD_Bbitrevbo:
+    case TriCore::LD_BUbitrevbo:
+    case TriCore::LD_Hbitrevbo:
+    case TriCore::LD_HUbitrevbo:
+    case TriCore::LD_Wbitrevbo:
+    case TriCore::LD_Dbitrevbo:
+    case TriCore::LD_Abitrevbo: {
       const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg = MI->getOperand(1).getReg();      
       if (MRC.contains(Reg)) {
@@ -112,7 +127,9 @@ void TriCoreInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
       break;
     }    
     case TriCore::LD_DAcircbo:
-    case TriCore::ST_DAcircbo: {
+    case TriCore::ST_DAcircbo:
+    case TriCore::LD_DAbitrevbo: {
+    //case TriCore::ST_DAbitrevbo: {
       const MCRegisterClass &MRC = MRI.getRegClass(TriCore::AddrRegsRegClassID);
       unsigned Reg1 = MI->getOperand(0).getReg();
       unsigned Reg2 = MI->getOperand(2).getReg();
@@ -315,7 +332,7 @@ void TriCoreInstPrinter::printAddrCircBO(const MCInst *MI, unsigned OpNum,
     O << " " << Offset.getImm();
   }
 }
-/*
+
 // Print a 'bitrevbo' operand which is an addressing mode
 // Bit-Reverse Base+Offset
 void TriCoreInstPrinter::printAddrBitRevBO(const MCInst *MI, unsigned OpNum,
@@ -332,7 +349,7 @@ void TriCoreInstPrinter::printAddrBitRevBO(const MCInst *MI, unsigned OpNum,
       O << "+r]";
   }
 }
-*/
+
 void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                   raw_ostream &O) {
 

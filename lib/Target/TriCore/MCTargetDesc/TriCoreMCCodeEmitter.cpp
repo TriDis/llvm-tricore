@@ -58,6 +58,10 @@ public:
   unsigned getBaseOffsetValue(const MCInst &MI, unsigned OpIdx,
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const;
+  
+  unsigned getBaseValue(const MCInst &MI, unsigned OpIdx,
+                          SmallVectorImpl<MCFixup> &Fixups,
+                          const MCSubtargetInfo &STI) const;
 
   unsigned encodeCallTarget(const MCInst &MI, unsigned OpNo,
                             SmallVectorImpl<MCFixup> &Fixups,
@@ -170,6 +174,13 @@ unsigned TriCoreMCCodeEmitter::getBaseOffsetValue(const MCInst &MI, unsigned OpI
   unsigned Reg = getMachineOpValue(MI, RegMO, Fixups, STI);
   int32_t offset = Reg | (ImmMO.getImm() << 4);
   return offset;
+}
+
+unsigned TriCoreMCCodeEmitter::getBaseValue(const MCInst &MI, unsigned OpIdx,
+                                          SmallVectorImpl<MCFixup> &Fixups,
+                                          const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(OpIdx);
+  return CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
 }
 
 void TriCoreMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,

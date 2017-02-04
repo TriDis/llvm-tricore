@@ -210,14 +210,14 @@ def circbo : Operand<i32> {
   let PrintMethod = "printAddrCircBO";
   let EncoderMethod = "getBaseOffsetValue";
 }
-/*
-def bitrevbo : Operand<i32> {
-  let MIOperandInfo = (ops PairAddrRegsOp);
-  let PrintMethod = "printAddrBitRevBO";
-  //let EncoderMethod = "getBaseOffsetValue";
-}
-*/
 
+// FIXME: Bit-reverse addressing mode has no offset
+// Immediate operand is ignored in PrintMethod and EncoderMethod
+def bitrevbo : Operand<i32> {
+  let MIOperandInfo = (ops PairAddrRegsOp, i32imm);
+  let PrintMethod = "printAddrBitRevBO";  
+  let EncoderMethod = "getBaseValue";
+}
 
 //Nodes
 def immSExt4  : PatLeaf<(imm), [{ return isInt<4>(N->getSExtValue()); }]>;
@@ -696,7 +696,7 @@ def LD_DAcircbo : BO<0x29, 0x17, (outs PairAddrRegsOp:$d),
          "ld.da $d, $memri",
          [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
 def LD_Qcircbo  : LoadCircBO<0x18, "ld.q"  , load>;
-/*
+
 class LoadBitRevBO<bits<6> op2, string opstr, PatFrag PF,
          RegisterClass RC = DataRegs, ValueType intType = i32>
         : BO<0x29, op2, (outs RC:$d),
@@ -711,13 +711,12 @@ def LD_HUbitrevbo : LoadBitRevBO<0x03, "ld.hu" , zextloadi16>;
 def LD_Wbitrevbo  : LoadBitRevBO<0x04, "ld.w"  , load>;
 def LD_Dbitrevbo  : LoadBitRevBO<0x05, "ld.d"  , load, ExtRegs, i64>;
 def LD_Abitrevbo  : LoadBitRevBO<0x06, "ld.a"  , load, AddrRegs>;
-def LD_DAbitrevbo : LoadBitRevBO<0x07, "ld.da" , load, DAddrRegs, i64>;
-//def LD_DAbitrevbo : BO<0x29, 0x07, (outs d_addr:$d),
-         //(ins bitrevbo:$memri),
-         //"ld.da $d, $memri",
-         //[(set addr:$d, (i32 (load addr:$memri)))]>{ let mayLoad = 1; }
+def LD_DAbitrevbo : BO<0x29, 0x07, (outs PairAddrRegsOp:$d),
+         (ins bitrevbo:$memri),
+         "ld.da $d, $memri",
+         [(set PairAddrRegsOp:$d, (i64 (load addr:$memri)))]>{ let mayLoad = 1; }
 def LD_Qbitrevbo  : LoadBitRevBO<0x08, "ld.q"  , load>;
-*/
+
 def LD_Wbol : BOL<0x19, (outs DataRegs:$d),
    (ins bo:$memri),
    "ld.w $d, $memri",
@@ -810,7 +809,23 @@ let Predicates = [isnotPointer] in {
  def ST_Qcircbo : BO<0xA9, 0x18, (outs), (ins DataRegs:$d, circbo:$memri),
    "st.q $memri, $d",
    [(store DataRegs:$d, addr:$memri)]>;
-
+  /* 
+ def ST_Bbitrevbo : BO<0xA9, 0x00,(outs), (ins DataRegs:$d, bitrevbo:$memri),
+   "st.b $memri, $d",
+   [(truncstorei8 DataRegs:$d, addr:$memri)]>;
+ def ST_Hbitrevbo : BO<0xA9, 0x02,(outs), (ins DataRegs:$d, bitrevbo:$memri),
+   "st.h $memri, $d",
+   [(truncstorei16 DataRegs:$d, addr:$memri)]>;
+ def ST_Wbitrevbo : BO<0xA9, 0x04, (outs), (ins DataRegs:$d, bitrevbo:$memri),
+   "st.w $memri, $d",
+   [(store DataRegs:$d, addr:$memri)]>;
+ def ST_Dbitrevbo : BO<0xA9, 0x05, (outs), (ins ExtRegs:$d, bitrevbo:$memri),
+   "st.d $memri, $d",
+   [(store ExtRegs:$d, addr:$memri)]>;
+ def ST_Qbitrevbo : BO<0xA9, 0x08, (outs), (ins DataRegs:$d, bitrevbo:$memri),
+   "st.q $memri, $d",
+   [(store DataRegs:$d, addr:$memri)]>;
+*/
  def : Pat<(truncstorei32 ExtRegs:$d, addr:$memri),
     (ST_Wbo (EXTRACT_SUBREG ExtRegs:$d, subreg_even), addr:$memri)>;
 
@@ -860,6 +875,15 @@ let Predicates = [isPointer] in {
    def ST_DAcircbo : BO<0xA9, 0x17,(outs), (ins PairAddrRegsOp:$d, circbo:$memri),
    "st.da $memri, $d",
    [(store i64:$d, addr:$memri)]>;
+   /*
+   def ST_Abitrevbo : BO<0xA9, 0x06,(outs), (ins AddrRegs:$d, bitrevbo:$memri),
+   "st.a $memri, $d",
+   [(store i32:$d, bitrevbo:$memri)]>;
+
+   def ST_DAbitrevbo : BO<0xA9, 0x07,(outs), (ins PairAddrRegsOp:$d, bitrevbo:$memri),
+   "st.da $memri, $d",
+   [(store i64:$d, bitrevbo:$memri)]>;
+   * */
 } // let Predicates = [isPointer]
 
 // Shift Instructions

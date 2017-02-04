@@ -51,7 +51,7 @@ private:
   void printAddrPreIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
   void printAddrPostIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
   void printAddrCircBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
-  //void printAddrBitRevBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrBitRevBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
 
 };
 } // end namespace llvm
